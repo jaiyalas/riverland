@@ -8,6 +8,7 @@ open import Data.List.Any as Any
 open Any.Membership-≡ using (_∈_; _∉_)
 
 open import Expr
+open import Types
 open import Substitution
 
 -- ############################################ --
@@ -15,60 +16,91 @@ open import Substitution
 -- Ctx : ℕ → Set
 -- Ctx i = Assoc (Fin i) Typ
 Ctx : Set
-Ctx = Assoc FName Typ
+Ctx = Assoc FName LType
 
--- data DomDist {A B : Set} : Assoc A B → Set where
-data DomDist : Ctx → Set where
-  [] : DomDist []
-  _∷_ : ∀ {Γ x τ}
-        → (x∉ : x ∉ (Data.List.map proj₁ Γ))
-        → DomDist Γ
-        → DomDist ((x , τ) ∷ Γ)
+Ctx! : Set
+Ctx! = Assoc FName IType
+
+data DomDist {A : Set} : Assoc FName A → Set where
+-- data DomDist : Ctx → Set where
+    [] : DomDist []
+    _∷_ : ∀ {Γ x τ}
+         → (x∉ : x ∉ (Data.List.map proj₁ Γ))
+         → DomDist Γ
+         → DomDist ((x , τ) ∷ Γ)
 
 -- ############################################ --
 
--- 1. redefine: NJ
--- 2. define: LJ
-
-data _⊢_∶_ {n : ℕ} : Ctx → Expr n → Typ → Set where
--- data _⊢_∶_ : Ctx → Expr 0 → Typ → Set where
-   var : ∀ {Γ x τ}
-         → DomDist Γ
-         → (x , τ) ∈ Γ → Γ ⊢ fv x ∶ τ
-   num : ∀ {Γ} i → Γ ⊢ num i ∶ numᵗ
-   {- ##### ∧-I/E ##### -}
-   ∧-I : ∀ {Γ t u A B}
-         → Γ ⊢ t ∶ A
-         → Γ ⊢ u ∶ B
-         → Γ ⊢ ⟨ t , u ⟩ ∶ (A ∧ B)
-   ∧-E₁ : ∀ {Γ t A B}
-          → Γ ⊢ t ∶ (A ∧ B)
-          → Γ ⊢ fst t ∶ A
-   ∧-E₂ : ∀ {Γ u A B}
-          → Γ ⊢ u ∶ (A ∧ B)
-          → Γ ⊢ snd u ∶ B
-   {- ##### ∨-I/E ##### -}
-   ∨-I₁ : ∀ {Γ t A B}
-        → Γ ⊢ t ∶ A
-        → Γ ⊢ inl t ∶ (A ∨ B)
-   ∨-I₂ : ∀ {Γ u A B}
-        → Γ ⊢ u ∶ B
-        → Γ ⊢ inr u ∶ (A ∨ B)
-   -- %%%%%%%%%%% Question %%%%%%%%%%% --
-   ∨-E : ∀ {Γ A B C t u v a b}
-       → (L : FNames)
-       → Γ ⊢ t ∶ (A ∨ B)
-       → (∀ x → x ∉ L → ((x , A) ∷ Γ) ⊢ u ∶ C)
-       → (∀ y → y ∉ L → ((y , B) ∷ Γ) ⊢ v ∶ C)
-       → Γ ⊢ match t of inl a ⟩ u or inr b ⟩ v  ∶ C
-   {- ##### ⊃-I/E ##### -}
-   -- %%%%%%%%%%% Question %%%%%%%%%%% --
-   -- ⊃-I : ∀ {Γ A B f}
-   --       → (L : FNames)
-   --       → (∀ a → a ∉ L
-   --              → ((a , A) ∷ Γ) ⊢ (f ₀↦ (fv a)) ∶ B)
-   --       → Γ ⊢ (ƛ A f) ∶ (A ⊃ B)
-   ⊃-E : ∀ {Γ f a A B}
-         → Γ ⊢ f ∶ (A ⊃ B)
-         → Γ ⊢ a ∶ A
-         → Γ ⊢ (f · a) ∶ B
+data _,_⊢_∶_ {n : ℕ} : Ctx → Ctx → Expr n → LType → Set where
+    num : ∀ {Γ [Γ]} i → Γ , [Γ] ⊢ num i ∶ numᵗ
+    -- {- ##### Exchange rules ##### -}
+        -- done by Assoc and ∈
+    -- {- ##### Contraction rules ##### -}
+    weaken : ∀ {Γ [Γ] t x A B}
+        → (L : FNames) → x ∉ L
+        → Γ , [Γ] ⊢ t ∶ B
+        → Γ , (x , A) ∷ [Γ] ⊢ t ∶ B
+    -- {- ##### Weakening rules ##### -}
+    contract : ∀ {Γ [Γ] t A B y z}
+        → (L : FNames) → y ∉ L → z ∉ L
+        → Γ , (y , A) ∷ ((z , A) ∷ [Γ]) ⊢ t ∶ B
+        → (∀ x → x ∉ L → Γ , (x , A) ∷ [Γ] ⊢ [ y ↝ fv x ] ([ z ↝ fv x ] t) ∶ B)
+    -- {- ##### id-I/E ##### -}
+    var! : ∀ {Γ [Γ] x τ} → DomDist [Γ]
+          → (x , τ) ∈ [Γ]
+          → Γ , [Γ] ⊢ fv x ∶ ⟪ τ ⟫
+    var : ∀ {Γ [Γ] x τ} → DomDist Γ
+        → (x , τ) ∈ Γ
+        → Γ , [Γ] ⊢ fv x ∶ τ
+    -- {- ##### ⟪_⟫-I/E ##### -}
+    ⟪⟫-I : ∀ {Γ [Γ] t A}
+        → Γ , [Γ] ⊢ t ∶ A
+        → Γ , [Γ] ⊢ ! t ∶ ⟪ A ⟫
+    ⟪⟫-E : ∀ {Γ [Γ] Δ [Δ] t u A B x}
+        → (L : FNames) → x ∈ L
+        → Γ , [Γ] ⊢ t ∶ ⟪ A ⟫
+        → Δ , ((x , A) ∷ [Δ]) ⊢ u ∶ B
+        → (Γ ++ Δ) , ([Γ] ++ [Δ]) ⊢ ask t be ! (fv x) then u ∶ B
+    -- {- ##### ⊸-I/E ##### -}
+    ⊸-I : ∀ {Γ [Γ] t A B}
+        → (L : FNames)
+        → (∀ x → x ∉ L → ((x , A) ∷ Γ) , [Γ] ⊢ t ∶ B)
+        → Γ , [Γ] ⊢ ƛ A t ∶ (A ⊸ B)
+    ⊸-E : ∀ {Γ [Γ] Δ [Δ] A B t u}
+        → Γ , [Γ] ⊢ t ∶ (A ⊸ B)
+        → Δ , [Δ] ⊢ u ∶ A
+        → (Γ ++ Δ) , ([Γ] ++ [Δ]) ⊢ t · u ∶ B
+    -- {- ##### &-I/E ##### -}
+    &-I : ∀ {Γ [Γ] Δ [Δ] t u A B}
+        → Γ , [Γ] ⊢ t ∶ A
+        → Δ , [Δ] ⊢ u ∶ B
+        → (Γ ++ Δ) , ([Γ] ++ [Δ]) ⊢ ⟨ t × u ⟩ ∶ (A & B)
+    &-E₁ : ∀ {Γ [Γ] t A B}
+        → Γ , [Γ] ⊢ t ∶ (A & B)
+        → Γ , [Γ] ⊢ fst t ∶ A
+    &-E₂ : ∀ {Γ [Γ] t A B}
+        → Γ , [Γ] ⊢ t ∶ (A & B)
+        → Γ , [Γ] ⊢ snd t ∶ B
+    -- {- ##### ⊗-I/E ##### -}
+    ⊗-I : ∀ {Γ [Γ] Δ [Δ] t u A B}
+        → Γ , [Γ] ⊢ t ∶ A
+        → Δ , [Δ] ⊢ u ∶ B
+        → (Γ ++ Δ) , ([Γ] ++ [Δ]) ⊢ ⟨ t ∣ u ⟩ ∶ (A ⊗ B)
+    ⊗-E : ∀ {Γ [Γ] Δ [Δ] t u A B C x y}
+        → (L : FNames) → x ∉ L → y ∉ L
+        → Γ , [Γ] ⊢ t ∶ (A ⊗ B)
+        → ((x , A) ∷ ((y , B) ∷ Δ)) , [Δ] ⊢ u ∶ C
+        → (Γ ++ Δ) , ([Γ] ++ [Δ]) ⊢ both t of ⟨ fv x ∣ fv y ⟩ then u ∶ C
+    -- {- ##### ⊕-I/E ##### -}
+    ⊕-I₁ : ∀ {Γ [Γ] t A B}
+        → Γ , [Γ] ⊢ t ∶ A
+        → Γ , [Γ] ⊢ inl t ∶ (A ⊕ B)
+    ⊕-I₂ : ∀ {Γ [Γ] u A B}
+        → Γ , [Γ] ⊢ u ∶ B
+        → Γ , [Γ] ⊢ inr u ∶ (A ⊕ B)
+    ⊕-E : ∀ {Γ [Γ] Δ [Δ] t u v A B C}
+        → (L : FNames)
+        → Γ , [Γ] ⊢ t ∶ (A ⊕ B)
+        → (∀ x → x ∉ L → ((x , A) ∷ Δ) , [Δ] ⊢ u ∶ C)
+        → (∀ y → y ∉ L → ((y , B) ∷ Δ) , [Δ] ⊢ v ∶ C)
+        → (Γ ++ Δ) , ([Γ] ++ [Δ]) ⊢ match t of u or v ∶ C
