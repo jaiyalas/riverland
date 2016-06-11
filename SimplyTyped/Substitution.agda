@@ -27,10 +27,8 @@ open import Expr
 [ m ↦ t ] (snd e) = snd ([ m ↦ t ] e)
 [ m ↦ t ] (inl e) = inl ([ m ↦ t ] e)
 [ m ↦ t ] (inr e) = inr ([ m ↦ t ] e)
-[ m ↦ t ] (match x of a ⟩ x₁ or b ⟩ x₂ ) =
-   match [ m ↦ t ] x of
-      [ m ↦ t ] a ⟩ [ m ↦ t ] x₁ or
-      [ m ↦ t ] b ⟩ [ m ↦ t ] x₂
+[ m ↦ t ] (match x of x₁ or x₂ ) = 
+   match [ m ↦ t ] x of [ m ↦ t ] x₁ or [ m ↦ t ] x₂
 
 _₀↦_ : Expr 1 → Expr 0 → Expr 0
 m ₀↦ t = [ 0 ↦ t ] m
@@ -50,10 +48,8 @@ m ₀↦ t = [ 0 ↦ t ] m
 [ m ↤ name ] (snd e) = snd ([ m ↤ name ] e)
 [ m ↤ name ] (inl e) = inl ([ m ↤ name ] e)
 [ m ↤ name ] (inr e) = inr ([ m ↤ name ] e)
-[ m ↤ name ] (match x of a ⟩ x₁ or b ⟩ x₂ ) =
-   match [ m ↤ name ] x of
-      [ m ↤ name ] a ⟩ [ m ↤ name ] x₁ or
-      [ m ↤ name ] b ⟩ [ m ↤ name ] x₂
+[ m ↤ name ] (match x of x₁ or x₂ ) =
+   match [ m ↤ name ] x of [ m ↤ name ] x₁ or [ m ↤ name ] x₂
 
 _₀↤_ : Expr 0 → FName → Expr 1
 t ₀↤ x = [ 0 ↤ x ] t
@@ -73,10 +69,10 @@ t ₀↤ x = [ 0 ↤ x ] t
 [ fn ↝ t ] (snd e) = snd ([ fn ↝ t ] e)
 [ fn ↝ t ] (inl e) = inl ([ fn ↝ t ] e)
 [ fn ↝ t ] (inr e) = inr ([ fn ↝ t ] e)
-[ fn ↝ t ] (match x of a ⟩ x₁ or b ⟩ x₂ ) =
-   match [ fn ↝ t ] x of
-      [ fn ↝ t ] a ⟩ [ fn ↝ t ] x₁ or
-      [ fn ↝ t ] b ⟩ [ fn ↝ t ] x₂
+[ fn ↝ t ] (match x of x₁ or x₂ ) = match [ fn ↝ t ] x of [ fn ↝ t ] x₁ or [ fn ↝ t ] x₂
+   -- match [ fn ↝ t ] x of
+   --    [ fn ↝ t ] a ⟩ [ fn ↝ t ] x₁ or
+   --    [ fn ↝ t ] b ⟩ [ fn ↝ t ] x₂
 
 
 

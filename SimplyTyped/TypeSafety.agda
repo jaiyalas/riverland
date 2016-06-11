@@ -1,9 +1,5 @@
 module TypeSafety where
-
-
-
-
-
+-- .
 ⊢-weaken : ∀ Γ x τ Δ {e σ}
            → x ∉ dom (Γ ++ Δ)
            → (Γ ++ Δ) ⊢ e ∶ σ

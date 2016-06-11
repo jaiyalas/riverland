@@ -47,11 +47,9 @@ data Expr : ℕ → Set where
    -- ∨-I/E
    inl : ∀ {n} → (e : Expr n) → Expr n
    inr : ∀ {n} → (e : Expr n) → Expr n
-   match_of_⟩_or_⟩_ : ∀ {n}
+   match_of_or_ : ∀ {n}
           → (t  : Expr n)
-          → (u  : Expr n)
           → (e₁ : Expr n)
-          → (v  : Expr n)
           → (e₂ : Expr n)
           → Expr n
 
@@ -73,9 +71,7 @@ fvars (fst x) = fvars x
 fvars (snd x) = fvars x
 fvars (inl x) = fvars x
 fvars (inr x) = fvars x
--- %%%%%%%%%%% Question %%%%%%%%%%% --
-fvars (match x of t ⟩ x₁ or u ⟩ x₂ ) = 先混過去
-   where postulate 先混過去 : _
+fvars (match x of x₁ or x₂) = fvars x₁ ++ fvars x₂
 
 postulate fresh-gen      : FNames → FName
 postulate fresh-gen-spec : ∀ ns → fresh-gen ns ∉ ns
@@ -110,8 +106,7 @@ genName ns = fresh-gen ns , fresh-gen-spec ns
 ↑expr (snd e) = snd (↑expr e)
 ↑expr (inl e) = inl (↑expr e)
 ↑expr (inr e) = inr (↑expr e)
-↑expr (match x of t ⟩ x₁ or u ⟩ x₂ ) = 先混過去
-   where postulate 先混過去 : _
+↑expr (match x of x₁ or x₂ ) = match ↑expr x of ↑expr x₁ or ↑expr x₂
    -- match ↑expr t of ↑expr e₁ ∔ ↑expr e₂
 
 

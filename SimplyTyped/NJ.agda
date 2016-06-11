@@ -1,4 +1,4 @@
-module Typing where
+module NJ where
 
 open import Data.Nat renaming (_≟_ to _≟ℕ_)
 open import Data.Product using (∃; _,_)
@@ -25,13 +25,9 @@ data DomDist : Ctx → Set where
         → DomDist Γ
         → DomDist ((x , τ) ∷ Γ)
 
--- ############################################ --
-
--- 1. redefine: NJ
--- 2. define: LJ
-
-data _⊢_∶_ {n : ℕ} : Ctx → Expr n → Typ → Set where
--- data _⊢_∶_ : Ctx → Expr 0 → Typ → Set where
+-- data _⊢_∶_ {n : ℕ} : Ctx → Expr n → Typ → Set where
+data _⊢_∶_ : Ctx → Expr 0 → Typ → Set where
+   {- ##### Axiom ##### -}
    var : ∀ {Γ x τ}
          → DomDist Γ
          → (x , τ) ∈ Γ → Γ ⊢ fv x ∶ τ
@@ -54,20 +50,18 @@ data _⊢_∶_ {n : ℕ} : Ctx → Expr n → Typ → Set where
    ∨-I₂ : ∀ {Γ u A B}
         → Γ ⊢ u ∶ B
         → Γ ⊢ inr u ∶ (A ∨ B)
-   -- %%%%%%%%%%% Question %%%%%%%%%%% --
-   ∨-E : ∀ {Γ A B C t u v a b}
+   ∨-E : ∀ {Γ A B C t u v}
        → (L : FNames)
        → Γ ⊢ t ∶ (A ∨ B)
        → (∀ x → x ∉ L → ((x , A) ∷ Γ) ⊢ u ∶ C)
        → (∀ y → y ∉ L → ((y , B) ∷ Γ) ⊢ v ∶ C)
-       → Γ ⊢ match t of inl a ⟩ u or inr b ⟩ v  ∶ C
+       → Γ ⊢ match t of u or v ∶ C
    {- ##### ⊃-I/E ##### -}
-   -- %%%%%%%%%%% Question %%%%%%%%%%% --
-   -- ⊃-I : ∀ {Γ A B f}
-   --       → (L : FNames)
-   --       → (∀ a → a ∉ L
-   --              → ((a , A) ∷ Γ) ⊢ (f ₀↦ (fv a)) ∶ B)
-   --       → Γ ⊢ (ƛ A f) ∶ (A ⊃ B)
+   ⊃-I : ∀ {Γ A B f}
+         → (L : FNames)
+         → (∀ a → a ∉ L
+                → ((a , A) ∷ Γ) ⊢ (f ₀↦ (fv a)) ∶ B)
+         → Γ ⊢ (ƛ A f) ∶ (A ⊃ B)
    ⊃-E : ∀ {Γ f a A B}
          → Γ ⊢ f ∶ (A ⊃ B)
          → Γ ⊢ a ∶ A
