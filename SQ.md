@@ -1,6 +1,15 @@
 ## questions
 
 + LJ done, but correct?
++ why locally nameless? sep, in linear lambda
+    + is dBIx useful here?
++ ...
+
+
+
+
+
+
 
 ## unsolved problems
 
