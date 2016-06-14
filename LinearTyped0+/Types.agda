@@ -30,4 +30,12 @@ data LType : Set where
    _⊕_  : LType → LType → LType
    _⊗_  : LType → LType → LType
    _&_  : LType → LType → LType
-   ⟪_⟩  : LType → LType
+   ⟪_⟫  : LType → LType
+
+-- .
+
+Ctx : Set
+Ctx = Assoc FName LType
+
+!Ctx : Set
+!Ctx = Assoc FName IType
