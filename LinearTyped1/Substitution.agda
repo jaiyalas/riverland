@@ -88,7 +88,7 @@ m ₀↦ t = [ 0 ↦ t ] m
 
 -- [_↤_] : ∀ n → FName → Expr n → Expr (suc n)
 -- [ n ↤ name ] (fv x) with name ≟S x
--- [ n ↤ name ] (fv x) | yes p = bv (fromℕ n) 
+-- [ n ↤ name ] (fv x) | yes p = bv (fromℕ n)
 -- [ n ↤ name ] (fv x) | no ¬p = ↑expr (fv x)
 -- -- .
 -- [ n ↤ name ] (ƛ t) = ƛ ([ suc n ↤ name ] t)
