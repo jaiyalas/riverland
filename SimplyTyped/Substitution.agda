@@ -27,7 +27,7 @@ open import Expr
 [ m ↦ t ] (snd e) = snd ([ m ↦ t ] e)
 [ m ↦ t ] (inl e) = inl ([ m ↦ t ] e)
 [ m ↦ t ] (inr e) = inr ([ m ↦ t ] e)
-[ m ↦ t ] (match x of x₁ or x₂ ) = 
+[ m ↦ t ] (match x of x₁ or x₂ ) =
    match [ m ↦ t ] x of [ m ↦ t ] x₁ or [ m ↦ t ] x₂
 
 _₀↦_ : Expr 1 → Expr 0 → Expr 0

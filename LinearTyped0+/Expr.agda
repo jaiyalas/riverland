@@ -32,33 +32,43 @@ data Expr : ℕ → Set where
     _·_ : ∀ {n} → (f : Expr n) → (e : Expr n) → Expr n
     -- ⟪⟫-I/E
     !_  : ∀ {n} → Expr n → Expr n
-    ask_be!_then_ : ∀ {n}
+    -- ask_be!_then_ : ∀ {n}
+    ask_be!then_ : ∀ {n}
         → (e₁ : Expr n)
-        → (fv₁ : Expr n)
+        -- → (fv₁ : Expr n) -- FName
+        -- 不需要，因為這裡的那個 fv₁ 應該是 local variable
+        -- 而因為我們用 locally nameless，顧名思義
+        -- 這裡的 local variable 應該是 bv 而不是 fv
+        -- 而且應該要是 bv 0 (還是 bv ⊤ ???...)
         → (f : Expr n)
         → Expr n
     -- &-I/E
-    ⟨_×_⟩ : ∀ {n} → (e₁ : Expr n) → (e₂ : Expr n) → Expr n
+    ⟨_∣_⟩ : ∀ {n} → (e₁ : Expr n) → (e₂ : Expr n) → Expr n
     fst   : ∀ {n} → (e : Expr n) → Expr n
     snd   : ∀ {n} → (e : Expr n) → Expr n
     -- ⊗-I/E
-    ⟨_∣_⟩ : ∀ {n} → (e₁ : Expr n) → (e₂ : Expr n) → Expr n
-    ask_be⟨_∣_⟩then_ : ∀ {n}
-          → (e  : Expr n)
-          → (fv₁ : Expr n)
-          → (fv₂ : Expr n)
-          → (f : Expr n)
-          → Expr n
+    ⟨_×_⟩ : ∀ {n} → (e₁ : Expr n) → (e₂ : Expr n) → Expr n
+    -- ask_be⟨_×_⟩then_ : ∀ {n}
+    ask_be⟨×⟩then_ : ∀ {n}
+        → (e  : Expr n)
+        -- → (fv₁ : Expr n) -- FName
+        -- → (fv₂ : Expr n) -- FName
+        -- 如同 !-E 的情況一樣
+        → (f : Expr n)
+        → Expr n
     -- ⊕-I/E
     inl : ∀ {n} → (e : Expr n) → Expr n
     inr : ∀ {n} → (e : Expr n) → Expr n
-    match_of_⇒_or_⇒_ : ∀ {n}
-          → (e  : Expr n)
-          → (fv₁  : Expr n)
-          → (f₁ : Expr n)
-          → (fv₂  : Expr n)
-          → (f₂ : Expr n)
-          → Expr n
+    -- match_of_⇒_or_⇒_ : ∀ {n}
+    match_of_or_ : ∀ {n}
+        → (e  : Expr n)
+        -- → (fv₁  : Expr n) -- FName
+        -- 如同 !-E 的情況一樣
+        → (f₁ : Expr n)
+        -- → (fv₂  : Expr n) -- FName
+        -- 如同 !-E 的情況一樣
+        → (f₂ : Expr n)
+        → Expr n
 
 Expr0 : Set
 Expr0 = Expr zero
@@ -75,18 +85,18 @@ fvars (ƛ x) = fvars x
 fvars (x · x₁) = fvars x ++ fvars x₁
 -- .
 fvars (! e) = fvars e
-fvars (ask e be! e₁ then f) = fvars f
+fvars (ask e be!then f) = fvars f
 -- .
-fvars ⟨ x × x₁ ⟩ = fvars x ++ fvars x₁
+fvars ⟨ x ∣ x₁ ⟩ = fvars x ++ fvars x₁
 fvars (fst x) = fvars x
 fvars (snd x) = fvars x
 -- .
-fvars ⟨ x ∣ x₁ ⟩ = fvars x ++ fvars x₁
-fvars (ask e be⟨ e₁ ∣ e₂ ⟩then e₃) = fvars e₃
+fvars ⟨ x × x₁ ⟩ = fvars x ++ fvars x₁
+fvars (ask e be⟨×⟩then e₃) = fvars e₃
 -- .
 fvars (inl x) = fvars x
 fvars (inr x) = fvars x
-fvars (match e of x₁ ⇒ f₁ or x₂ ⇒ f₂) = fvars f₁ ++ fvars f₂
+fvars (match e of f₁ or f₂) = fvars f₁ ++ fvars f₂
 
 {- ########################################### -}
 {- generate a fresh new name for free variable -}
@@ -102,11 +112,16 @@ genName ns = fresh-gen ns , fresh-gen-spec ns
 {- related properties -}
 {- ################## -}
 
+-- 需要兩個 Fin 相關的 lifting 函數
+-- 一個是：term 不變, 但是 Expr n 的 n + 1
+-- 另一個：term 變 (aka: bv i ⇒ bv suc i), 而且 Expr n 的 n + 1
+
 ↓ℕ≠ℕ : ∀ {n m} {i : Fin m}
      → ¬ (suc n ≡ toℕ (suc i))
      → ¬ (n ≡ toℕ i)
 ↓ℕ≠ℕ {n} {m} {i} sn≠si n≡i rewrite n≡i = sn≠si refl
 
+-- down-lifting on type level only
 -- reduce fin by 1 on type level but not data level
 ↓fin : ∀ {n} → (i : Fin (suc n)) → ¬ (n ≡ toℕ i) → Fin n
 ↓fin {zero} zero 0≠0 with 0≠0 refl
@@ -115,12 +130,18 @@ genName ns = fresh-gen ns , fresh-gen-spec ns
 ↓fin {suc n} zero i≠0 = zero
 ↓fin {suc n} (suc i) sn≠si = suc (↓fin i (↓ℕ≠ℕ sn≠si))
 
+-- ↑fin, lifting type but not term
+↑fin : ∀ {n} → Fin n → Fin (suc n)
+↑fin = inject₁
+-- inject₁ zero    = zero
+-- inject₁ (suc i) = suc (inject₁ i)
+
 -- Increasing all fin within the given exp by 1 on type level
 -- without actually changing exp.
 ↑expr : ∀ {n} → Expr n → Expr (suc n)
 ↑expr (num x) = num x
 ↑expr (fv x) = fv x
-↑expr (bv i) = bv (inject₁ i) -- inject₁ ≡ ↑fin
+↑expr (bv i) = bv (↑fin i)
 ↑expr (ƛ e) = ƛ (↑expr e)
 ↑expr (f · e) = ↑expr f · ↑expr e
 ↑expr (! x) = ! ↑expr x
@@ -135,32 +156,6 @@ genName ns = fresh-gen ns , fresh-gen-spec ns
 ↑expr (inl x) = inl (↑expr x)
 ↑expr (inr x) = inr (↑expr x)
 ↑expr (match x of x₁ ⇒ x₂ or x₃ ⇒ x₄) = match ↑expr x of ↑expr x₁ ⇒ ↑expr x₂ or ↑expr x₃ ⇒ ↑expr x₄
-
-postulate ↓expr' : ∀ {n} → Expr (suc n) → Expr n
-
--- ↓expr : ∀ {n} → Expr (suc n) → Expr n
--- ↓expr (num x) = num x
--- ↓expr (fv x) = fv x
--- -- .
--- ↓expr (bv i) = {!   !}
--- -- ↓expr {n} (bv i) with n ≟ℕ toℕ i
--- -- ↓expr {n} (bv i) | yes p = {!   !}
--- -- ↓expr {n} (bv i) | no ¬p = bv (↓fin i ¬p)
--- -- .
--- ↓expr (ƛ t) = ƛ (↓expr t)
--- ↓expr (t · t₁) = ↓expr t · ↓expr t₁
--- ↓expr (! t) = ! ↓expr t
--- ↓expr (ask t be! t₁ then t₂) = ask ↓expr t be! ↓expr t₁ then ↓expr t₂
--- ↓expr ⟨ t × t₁ ⟩ = ⟨ ↓expr t × ↓expr t₁ ⟩
--- ↓expr (fst t) = fst (↓expr t)
--- ↓expr (snd t) = snd (↓expr t)
--- ↓expr ⟨ t ∣ t₁ ⟩ = ⟨ ↓expr t ∣ ↓expr t₁ ⟩
--- ↓expr (ask t be⟨ t₁ ∣ t₂ ⟩then t₃) = ask ↓expr t be⟨ ↓expr t₁ ∣ ↓expr t₂ ⟩then ↓expr t₃
--- ↓expr (inl t) = inl (↓expr t)
--- ↓expr (inr t) = inr (↓expr t)
--- ↓expr (match t of t₁ ⇒ t₂ or t₃ ⇒ t₄) = match ↓expr t of ↓expr t₁ ⇒ ↓expr t₂ or ↓expr t₃ ⇒ ↓expr t₄
--- -- .
-
 
 
 -- .

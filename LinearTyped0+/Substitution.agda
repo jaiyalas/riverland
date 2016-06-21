@@ -33,8 +33,10 @@ open import Types
     -- ⇒ ?0 = n+1 → ?1 must has type as Expr (n+1)
     ƛ ([ suc n ↦ ↑expr u ] t)
 -- .
-[ n ↦ u ] (num x) = ↓expr' (num x)
-[ n ↦ u ] (fv x) = ↓expr' (fv x)
+[ n ↦ u ] (num x) = num x
+-- [ n ↦ u ] (fv x) = ↓expr fv x
+-- 不需要 ↓expr, 因為 x 會被以新的 type (以及其對應的 constructors來)重構
+[ n ↦ u ] (fv x) = fv x
 -- .
 [ n ↦ u ] (t · t₁) = [ n ↦ u ] t · [ n ↦ u ] t₁
 [ n ↦ u ] (! t) = ! [ n ↦ u ] t
@@ -59,8 +61,8 @@ m ₀↦ t = [ 0 ↦ t ] m
 -- variable closing
 
 [_↤_] : ∀ n → FName → Expr n → Expr (suc n)
-[ n ↤ name ] (num x) = ↑expr (num x)
-[ n ↤ name ] (bv i) = ↑expr (bv i)
+[ n ↤ name ] (num x) = num x
+[ n ↤ name ] (bv i) = bv i -- 拿掉 ↑expr, 同理如上
 -- .
 [ n ↤ name ] (fv x) with name ≟S x
 [ n ↤ name ] (fv x) | yes p = bv (fromℕ n) -- fromℕ : (n : ℕ) → Fin (suc n)
@@ -99,7 +101,7 @@ t ₀↤ x = [ 0 ↤ x ] t
 [ fn ↝ t ] (fv x) | yes p = t
 [ fn ↝ t ] (fv x) | no ¬p = fv x
 [ fn ↝ t ] (bv i) = bv i
-[ fn ↝ t ] (ƛ x) = ƛ ([ fn ↝ ↑expr t ] x)
+[ fn ↝ t ] (ƛ x) = ƛ ([ fn ↝ ↑expr t ] x) -- +1...
 [ fn ↝ t ] (x · x₁) = [ fn ↝ t ] x · [ fn ↝ t ] x₁
 [ fn ↝ t ] (! x) = ! [ fn ↝ t ] x
 [ fn ↝ t ] (ask x be! x₁ then x₂) =
