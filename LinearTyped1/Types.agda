@@ -85,7 +85,8 @@ CtxI : Set
 CtxI = Assoc FName IType
 
 -- ##### distinct domain ##### --
-
+-- for avoiding the variable name collision
+-- will be useful later
 data DomDist {A : Set} : Assoc FName A → Set where
     [] : DomDist []
     _∷_ : ∀ {Γ x τ}

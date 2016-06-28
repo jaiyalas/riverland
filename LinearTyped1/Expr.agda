@@ -22,6 +22,13 @@ open import Types
 -- 1. `Expr n` is a type with n "unbounded" bounded variables.
 -- 2. `Expr (suc n)` is an exp that has (bv n) as its biggest bounded variable.
 
+-- These `ask` and `match` are using the `let..in..` pattern.
+-- tranditionally, the `let-in` has format as
+-- `let x = f in h` where x is a fv in h
+-- but, because of applying locally-nameless, the (fv x) is no longer necessary
+-- instead, we have `let (f : Expr n) in (h : Expr (suc n))`
+-- where the role of `fv x` will be replaced by (bv 0).
+
 data Expr : ℕ → Set where
     -- for variable naming
     num : ∀ {n} → ℕ → Expr n
@@ -35,7 +42,8 @@ data Expr : ℕ → Set where
     !_  : ∀ {n} → Expr n → Expr n
     ask_be!then_ : ∀ {n}
         → (e : Expr n)
-        → (f : Expr n)
+        -- 用 bv 0 來當 fv x
+        → (f : Expr (suc n))
         → Expr n
     -- &-I/E
     ⟨_∣_⟩ : ∀ {n} → (f : Expr n) → (g : Expr n) → Expr n
@@ -45,16 +53,21 @@ data Expr : ℕ → Set where
     ⟨_×_⟩ : ∀ {n} → (e₁ : Expr n) → (e₂ : Expr n) → Expr n
     -- ask_be⟨_×_⟩then_ : ∀ {n}
     ask_be⟨×⟩then_ : ∀ {n}
-        → (e  : Expr n)
-        → (f : Expr n)
+        → (e : Expr n)
+        -- 用 bv 1/0 來當 fv x/y
+        -- 也就是說 (x , y) : A × B 中
+        -- x 會先算出來
+        → (f : Expr (suc (suc n)))
         → Expr n
     -- ⊕-I/E
     inl : ∀ {n} → (e : Expr n) → Expr n
     inr : ∀ {n} → (e : Expr n) → Expr n
     match_of_or_ : ∀ {n}
         → (e  : Expr n)
-        → (f : Expr n)
-        → (g : Expr n)
+        -- 用 bv 0 來當 fv x
+        → (f : Expr (suc n))
+        -- 用 bv 0 來當 fv x
+        → (g : Expr (suc n))
         → Expr n
 
 Expr0 : Set
@@ -133,6 +146,8 @@ genName ns = fresh-gen ns , fresh-gen-spec ns
 
 -- Increasing all fin within the given exp by 1 on type level
 -- without actually changing exp.
+-- 產生一個 bv n 來用
+-- 原本的 bv 所指涉的對象不變
 ↑bv : ∀ {n} → Expr n → Expr (suc n)
 ↑bv (num x) = num x
 ↑bv (fv x) = fv x
@@ -153,6 +168,9 @@ genName ns = fresh-gen ns , fresh-gen-spec ns
 ↑bv (match x of f or g) =
     match ↑bv x of ↑bv f or ↑bv g
 -- .
+-- 產生一個 bv 0 來用
+-- 原本的 bv 所指涉的對象不變
+-- 因為對象不變所以 bv n 要 lifting
 ↑expr : ∀ {n} → Expr n → Expr (suc n)
 ↑expr (num x) = num x
 ↑expr (fv x) = fv x

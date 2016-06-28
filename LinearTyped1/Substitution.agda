@@ -3,12 +3,8 @@ module Substitution where
 open import Data.Nat renaming (_≟_ to _≟ℕ_)
 open import Data.Fin hiding (_+_; inject)
 open import Data.String hiding (_++_) renaming (_≟_ to _≟S_)
-open import Data.List
-
-open import Data.Empty
 
 open import Relation.Nullary using (¬_; yes; no)
-open import Relation.Binary.PropositionalEquality using (refl; _≡_)
 
 open import Expr
 open import Types
@@ -16,6 +12,7 @@ open import Types
 -- #################################### --
 -- the outermost bound variable opening --
 -- #################################### --
+
 -- 把 Expr (suc n) 裡面最大的 (bv i) {where i=n} 給換成某個  Expr n 的玩意
 -- [interpretation 1]
 -- 假設 t : Expr (suc n) 沒有浮報 {i.e. 裡面真的 somewhere 有 (bv n)}
@@ -66,21 +63,20 @@ open import Types
 [ n ↦ u ] (t · t₁) = [ n ↦ u ] t · [ n ↦ u ] t₁
 [ n ↦ u ] (! t) = ! [ n ↦ u ] t
 [ n ↦ u ] (ask x be!then t) =
-    ask [ n ↦ u ] x be!then [ n ↦ u ] t
+    -- the let-to-bv0 preset => ↑expr rather than ↑bv
+    ask [ n ↦ u ] x be!then [ suc n ↦ ↑expr u ] t
 [ n ↦ u ] ⟨ t ∣ t₁ ⟩ = ⟨ [ n ↦ u ] t ∣ [ n ↦ u ] t₁ ⟩
 [ n ↦ u ] (fst t) = fst ([ n ↦ u ] t)
 [ n ↦ u ] (snd t) = snd ([ n ↦ u ] t)
 [ n ↦ u ] ⟨ f × g ⟩ = ⟨ [ n ↦ u ] f × [ n ↦ u ] g ⟩
 [ n ↦ u ] (ask x be⟨×⟩then t) =
-    ask [ n ↦ u ] x be⟨×⟩then [ n ↦ u ] t
+    -- the let-to-bv0 preset => ↑expr rather than ↑bv
+    ask [ n ↦ u ] x be⟨×⟩then [ suc (suc n) ↦ ↑expr (↑expr u) ] t
 [ n ↦ u ] (inl t) = inl ([ n ↦ u ] t)
 [ n ↦ u ] (inr t) = inr ([ n ↦ u ] t)
 [ n ↦ u ] (match t of f or g) =
-    match [ n ↦ u ] t of [ n ↦ u ] f or [ n ↦ u ] g
-
--- well-bounded(?)
-_₀↦_ : Expr 1 → Expr 0 → Expr 0
-m ₀↦ t = [ 0 ↦ t ] m
+    -- the let-to-bv0 preset => ↑expr rather than ↑bv
+    match [ n ↦ u ] t of [ suc n ↦ ↑expr u ] f or [ suc n ↦ ↑expr u ] g
 
 -- #################################### --
 -- the outermost bound variable closing --
@@ -99,21 +95,18 @@ m ₀↦ t = [ 0 ↦ t ] m
 [ n ↤ name ] (t · t₁) = [ n ↤ name ] t · [ n ↤ name ] t₁
 [ n ↤ name ] (! t) = ! [ n ↤ name ] t
 [ n ↤ name ] (ask t be!then f) =
-    ask [ n ↤ name ] t be!then [ n ↤ name ] f
+    ask [ n ↤ name ] t be!then [ suc n ↤ name ] f
 [ n ↤ name ] ⟨ f ∣ g ⟩ = ⟨ [ n ↤ name ] f ∣ [ n ↤ name ] g ⟩
 [ n ↤ name ] (fst t) = fst ([ n ↤ name ] t)
 [ n ↤ name ] (snd t) = snd ([ n ↤ name ] t)
 [ n ↤ name ] ⟨ f × g ⟩ = ⟨ [ n ↤ name ] f × [ n ↤ name ] g ⟩
 [ n ↤ name ] (ask t be⟨×⟩then f) =
-    ask [ n ↤ name ] t be⟨×⟩then [ n ↤ name ] f
+    ask [ n ↤ name ] t be⟨×⟩then [ suc (suc n) ↤ name ] f
 [ n ↤ name ] (inl t) = inl ([ n ↤ name ] t)
 [ n ↤ name ] (inr t) = inr ([ n ↤ name ] t)
 [ n ↤ name ] (match t of f or g) =
-    match [ n ↤ name ] t of
-        [ n ↤ name ] f or [ n ↤ name ] g
+    match [ n ↤ name ] t of [ suc n ↤ name ] f or [ suc n ↤ name ] g
 -- .
-_₀↤_ : Expr 0 → FName → Expr 1
-t ₀↤ x = [ 0 ↤ x ] t
 
 -- free variable substitution
 
@@ -127,29 +120,27 @@ t ₀↤ x = [ 0 ↤ x ] t
 [ fn ↝ t ] (x · x₁) = [ fn ↝ t ] x · [ fn ↝ t ] x₁
 [ fn ↝ t ] (! x) = ! [ fn ↝ t ] x
 [ fn ↝ t ] (ask x be!then f) =
-    ask [ fn ↝ t ] x be!then [ fn ↝ t ] f
+    ask [ fn ↝ t ] x be!then [ fn ↝ ↑expr t ] f
 [ fn ↝ t ] ⟨ x ∣ x₁ ⟩ = ⟨ [ fn ↝ t ] x ∣ [ fn ↝ t ] x₁ ⟩
 [ fn ↝ t ] (fst x) = fst ([ fn ↝ t ] x)
 [ fn ↝ t ] (snd x) = snd ([ fn ↝ t ] x)
 [ fn ↝ t ] ⟨ x × x₁ ⟩ = ⟨ [ fn ↝ t ] x × [ fn ↝ t ] x₁ ⟩
 [ fn ↝ t ] (ask x be⟨×⟩then f) =
-    ask [ fn ↝ t ] x be⟨×⟩then [ fn ↝ t ] f
+    ask [ fn ↝ t ] x be⟨×⟩then [ fn ↝ ↑expr (↑expr t) ] f
 [ fn ↝ t ] (inl x) = inl ([ fn ↝ t ] x)
 [ fn ↝ t ] (inr x) = inr ([ fn ↝ t ] x)
 [ fn ↝ t ] (match x of f or g) =
-    match [ fn ↝ t ] x of [ fn ↝ t ] f or [ fn ↝ t ] g
+    match [ fn ↝ t ] x of [ fn ↝ ↑expr t ] f or [ fn ↝ ↑expr t ] g
 
 
-    module Lazy where
+-- [_/_] : ∀ {n} → Expr (suc n) → Expr n → Expr n
+-- [ t / s ] = [ {!   !} ↦ s ] t
 
-    -- [_/_] : ∀ {n} → Expr (suc n) → Expr n → Expr n
-    -- [ t / s ] = [ {!   !} ↦ s ] t
+bv-opening : ∀ {n} → Expr (suc n) → Expr n → Expr n
+bv-opening {n} t s = [ n ↦ s ] t
 
-    bv-opening : ∀ {n} → Expr (suc n) → Expr n → Expr n
-    bv-opening {n} t s = [ n ↦ s ] t
-
-    bv-closing : ∀ {n} → Expr n → FName → Expr (suc n)
-    bv-closing {n} t name = [ n ↤ name ] t
+bv-closing : ∀ {n} → Expr n → FName → Expr (suc n)
+bv-closing {n} t name = [ n ↤ name ] t
 
 
 
