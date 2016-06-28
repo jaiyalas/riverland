@@ -18,9 +18,9 @@ FNames = List FName
 
 -- intuitionistic type
 data IType : Set where
-    -- native natural number
-    numᵗ : IType
-    -- function typee
+    -- primitive natural number
+    Num : IType
+    -- function type
     _⊃_ : IType → IType → IType
     -- product type
     _∧_ : IType → IType → IType
@@ -29,9 +29,8 @@ data IType : Set where
 
 
 data LType : Set where
-    -- native natural number
-    numᵗ : LType
-
+    -- primitive natural number
+    Num : LType
     -- linear function type
     -- EAGER!
     _⊸_  : LType → LType → LType

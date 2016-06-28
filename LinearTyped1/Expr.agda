@@ -60,6 +60,27 @@ data Expr : ℕ → Set where
 Expr0 : Set
 Expr0 = Expr zero
 
+f0 : ∀ {n} → Fin (suc n)
+f0 = zero
+f1 : ∀ {n} → Fin (suc (suc n))
+f1 = suc f0
+f2 : ∀ {n} → Fin (suc (suc (suc n)))
+f2 = suc f1
+f3 : ∀ {n} → Fin (suc (suc (suc (suc n))))
+f3 = suc f2
+f4 : ∀ {n} → Fin (suc (suc (suc (suc (suc n)))))
+f4 = suc f3
+
+ex : Expr 2
+ex = bv f0  ·      --   f0 ─⟶ the 1st nearest ƛ out here
+   ( bv f1  ·      --   f1 ─⟶ the 2nd nearest ƛ out here
+     (ƛ ( bv f0 ·  -- ƛ f0 ─⟶ this ƛ
+        ⟨ bv f1 ∣  -- ƛ f1 ─⟶ the 1st nearest ƛ out here
+          bv f2 ⟩  -- ƛ f2 ─⟶ the 2nd nearest ƛ out here
+        )))
+
+-- 747 - 723 = 2.4
+
 {- ################## -}
 {- free variable name -}
 {- ################## -}
@@ -96,6 +117,7 @@ genName : (ns : FNames) → ∃ (λ x → x ∉ ns)
 genName ns = fresh-gen ns , fresh-gen-spec ns
 
 -- .
+
 ↓ℕ≠ℕ : ∀ {n m} {i : Fin m} → ¬ (suc n ≡ toℕ (suc i)) → ¬ (n ≡ toℕ i)
 ↓ℕ≠ℕ {n} {m} {i} sn≠si n≡i rewrite n≡i = sn≠si refl
 -- .
@@ -108,14 +130,13 @@ genName ns = fresh-gen ns , fresh-gen-spec ns
 -- .
 ↑fin : ∀ {n} → Fin n → Fin (suc n)
 ↑fin = inject₁
--- .
 
 -- Increasing all fin within the given exp by 1 on type level
 -- without actually changing exp.
 ↑bv : ∀ {n} → Expr n → Expr (suc n)
 ↑bv (num x) = num x
 ↑bv (fv x) = fv x
-↑bv (bv i) = bv (↑fin i)    -- ☆ ☆ ☆
+↑bv (bv i) = bv (↑fin i)    -- ☆ ☆ ☆ type only
 ↑bv (ƛ e) = ƛ (↑bv e)
 ↑bv (f · e) = ↑bv f · ↑bv e
 ↑bv (! x) = ! ↑bv x
@@ -135,7 +156,7 @@ genName ns = fresh-gen ns , fresh-gen-spec ns
 ↑expr : ∀ {n} → Expr n → Expr (suc n)
 ↑expr (num x) = num x
 ↑expr (fv x) = fv x
-↑expr (bv i) = bv (suc i)  -- ☆ ☆ ☆
+↑expr (bv i) = bv (suc i)  -- ☆ ☆ ☆ type and term
 ↑expr (ƛ e) = ƛ (↑expr e)
 ↑expr (f · e) = ↑expr f · ↑expr e
 ↑expr (! x) = ! ↑expr x

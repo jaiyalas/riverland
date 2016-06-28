@@ -86,65 +86,70 @@ m ₀↦ t = [ 0 ↦ t ] m
 -- the outermost bound variable closing --
 -- #################################### --
 
--- [_↤_] : ∀ n → FName → Expr n → Expr (suc n)
--- [ n ↤ name ] (fv x) with name ≟S x
--- [ n ↤ name ] (fv x) | yes p = bv (fromℕ n)
--- [ n ↤ name ] (fv x) | no ¬p = ↑expr (fv x)
--- -- .
--- [ n ↤ name ] (ƛ t) = ƛ ([ suc n ↤ name ] t)
--- -- .
--- [ n ↤ name ] (num x) = num x
--- [ n ↤ name ] (bv i) = bv i
--- -- .
--- [ n ↤ name ] (t · t₁) = [ n ↤ name ] t · [ n ↤ name ] t₁
--- [ n ↤ name ] (! t) = ! [ n ↤ name ] t
--- [ n ↤ name ] (ask t be! t₁ then t₂) =
---     ask [ n ↤ name ] t be! [ n ↤ name ] t₁ then [ n ↤ name ] t₂
--- [ n ↤ name ] ⟨ t × t₁ ⟩ = ⟨ [ n ↤ name ] t × [ n ↤ name ] t₁ ⟩
--- [ n ↤ name ] (fst t) = fst ([ n ↤ name ] t)
--- [ n ↤ name ] (snd t) = snd ([ n ↤ name ] t)
--- [ n ↤ name ] ⟨ t ∣ t₁ ⟩ = ⟨ [ n ↤ name ] t ∣ [ n ↤ name ] t₁ ⟩
--- [ n ↤ name ] (ask t be⟨ t₁ ∣ t₂ ⟩then t₃) =
---     ask [ n ↤ name ] t be⟨ [ n ↤ name ] t₁ ∣ [ n ↤ name ] t₂ ⟩then [ n ↤ name ] t₃
--- [ n ↤ name ] (inl t) = inl ([ n ↤ name ] t)
--- [ n ↤ name ] (inr t) = inr ([ n ↤ name ] t)
--- [ n ↤ name ] (match t of t₁ ⇒ t₂ or t₃ ⇒ t₄) =
---     match [ n ↤ name ] t of
---         [ n ↤ name ] t₁ ⇒ [ n ↤ name ] t₂ or
---         [ n ↤ name ] t₃ ⇒ [ n ↤ name ] t₄
---
--- close : ∀ {n} → FName → Expr n → Expr (suc n)
--- close {n} name t = [ n ↤ name ] t
---
--- _₀↤_ : Expr 0 → FName → Expr 1
--- t ₀↤ x = [ 0 ↤ x ] t
+[_↤_] : ∀ n → FName → Expr n → Expr (suc n)
+[ n ↤ name ] (fv x) with name ≟S x
+[ n ↤ name ] (fv x) | yes p = bv (fromℕ n)
+[ n ↤ name ] (fv x) | no ¬p = fv x
+-- .
+[ n ↤ name ] (ƛ t) = ƛ ([ suc n ↤ name ] t)
+-- .
+[ n ↤ name ] (num x) = num x
+[ n ↤ name ] (bv i) = ↑bv (bv i)
+-- .
+[ n ↤ name ] (t · t₁) = [ n ↤ name ] t · [ n ↤ name ] t₁
+[ n ↤ name ] (! t) = ! [ n ↤ name ] t
+[ n ↤ name ] (ask t be!then f) =
+    ask [ n ↤ name ] t be!then [ n ↤ name ] f
+[ n ↤ name ] ⟨ f ∣ g ⟩ = ⟨ [ n ↤ name ] f ∣ [ n ↤ name ] g ⟩
+[ n ↤ name ] (fst t) = fst ([ n ↤ name ] t)
+[ n ↤ name ] (snd t) = snd ([ n ↤ name ] t)
+[ n ↤ name ] ⟨ f × g ⟩ = ⟨ [ n ↤ name ] f × [ n ↤ name ] g ⟩
+[ n ↤ name ] (ask t be⟨×⟩then f) =
+    ask [ n ↤ name ] t be⟨×⟩then [ n ↤ name ] f
+[ n ↤ name ] (inl t) = inl ([ n ↤ name ] t)
+[ n ↤ name ] (inr t) = inr ([ n ↤ name ] t)
+[ n ↤ name ] (match t of f or g) =
+    match [ n ↤ name ] t of
+        [ n ↤ name ] f or [ n ↤ name ] g
+-- .
+_₀↤_ : Expr 0 → FName → Expr 1
+t ₀↤ x = [ 0 ↤ x ] t
 
 -- free variable substitution
 
--- [_↝_] : ∀ {n} → FName → Expr n → Expr n → Expr n
--- [ fn ↝ t ] (num x) = num x
--- [ fn ↝ t ] (fv x) with fn ≟S x
--- [ fn ↝ t ] (fv x) | yes p = t
--- [ fn ↝ t ] (fv x) | no ¬p = fv x
--- [ fn ↝ t ] (bv i) = bv i
--- [ fn ↝ t ] (ƛ x) = ƛ ([ fn ↝ ↑expr t ] x) -- +1...
--- [ fn ↝ t ] (x · x₁) = [ fn ↝ t ] x · [ fn ↝ t ] x₁
--- [ fn ↝ t ] (! x) = ! [ fn ↝ t ] x
--- [ fn ↝ t ] (ask x be! x₁ then x₂) =
---     ask [ fn ↝ t ] x be! [ fn ↝ t ] x₁ then [ fn ↝ t ] x₂
--- [ fn ↝ t ] ⟨ x × x₁ ⟩ = ⟨ [ fn ↝ t ] x × [ fn ↝ t ] x₁ ⟩
--- [ fn ↝ t ] (fst x) = fst ([ fn ↝ t ] x)
--- [ fn ↝ t ] (snd x) = snd ([ fn ↝ t ] x)
--- [ fn ↝ t ] ⟨ x ∣ x₁ ⟩ = ⟨ [ fn ↝ t ] x ∣ [ fn ↝ t ] x₁ ⟩
--- [ fn ↝ t ] (ask x be⟨ x₁ ∣ x₂ ⟩then x₃) =
---     ask [ fn ↝ t ] x be⟨ [ fn ↝ t ] x₁ ∣ [ fn ↝ t ] x₂ ⟩then [ fn ↝ t ] x₃
--- [ fn ↝ t ] (inl x) = inl ([ fn ↝ t ] x)
--- [ fn ↝ t ] (inr x) = inr ([ fn ↝ t ] x)
--- [ fn ↝ t ] (match x of x₁ ⇒ x₂ or x₃ ⇒ x₄) =
---     match [ fn ↝ t ] x of
---         [ fn ↝ t ] x₁ ⇒ [ fn ↝ t ] x₂ or
---         [ fn ↝ t ] x₃ ⇒ [ fn ↝ t ] x₄
+[_↝_] : ∀ {n} → FName → Expr n → Expr n → Expr n
+[ fn ↝ t ] (num x) = num x
+[ fn ↝ t ] (fv x) with fn ≟S x
+[ fn ↝ t ] (fv x) | yes p = t
+[ fn ↝ t ] (fv x) | no ¬p = fv x
+[ fn ↝ t ] (bv i) = bv i
+[ fn ↝ t ] (ƛ x) = ƛ ([ fn ↝ ↑expr t ] x)
+[ fn ↝ t ] (x · x₁) = [ fn ↝ t ] x · [ fn ↝ t ] x₁
+[ fn ↝ t ] (! x) = ! [ fn ↝ t ] x
+[ fn ↝ t ] (ask x be!then f) =
+    ask [ fn ↝ t ] x be!then [ fn ↝ t ] f
+[ fn ↝ t ] ⟨ x ∣ x₁ ⟩ = ⟨ [ fn ↝ t ] x ∣ [ fn ↝ t ] x₁ ⟩
+[ fn ↝ t ] (fst x) = fst ([ fn ↝ t ] x)
+[ fn ↝ t ] (snd x) = snd ([ fn ↝ t ] x)
+[ fn ↝ t ] ⟨ x × x₁ ⟩ = ⟨ [ fn ↝ t ] x × [ fn ↝ t ] x₁ ⟩
+[ fn ↝ t ] (ask x be⟨×⟩then f) =
+    ask [ fn ↝ t ] x be⟨×⟩then [ fn ↝ t ] f
+[ fn ↝ t ] (inl x) = inl ([ fn ↝ t ] x)
+[ fn ↝ t ] (inr x) = inr ([ fn ↝ t ] x)
+[ fn ↝ t ] (match x of f or g) =
+    match [ fn ↝ t ] x of [ fn ↝ t ] f or [ fn ↝ t ] g
 
+
+    module Lazy where
+
+    -- [_/_] : ∀ {n} → Expr (suc n) → Expr n → Expr n
+    -- [ t / s ] = [ {!   !} ↦ s ] t
+
+    bv-opening : ∀ {n} → Expr (suc n) → Expr n → Expr n
+    bv-opening {n} t s = [ n ↦ s ] t
+
+    bv-closing : ∀ {n} → Expr n → FName → Expr (suc n)
+    bv-closing {n} t name = [ n ↤ name ] t
 
 
 
