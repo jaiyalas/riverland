@@ -15,19 +15,24 @@ open import Substitution
 -- open Substitution.Lazy
 -- .
 data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
+    litℕ : ∀ {n Γ [Γ]} → Γ , [Γ]  ⊢ num n ∶ Num
     -- -----------------------
     -- ## id/variable rules ##
     -- -----------------------
-    var  : ∀ {x A} →
-        ((x , A) ∷ []) ,            []  ⊢ fv x ∶ A
-    var! : ∀ {x A} →
-        []             , ((x , A) ∷ []) ⊢ fv x ∶ A
+    var : ∀ {x A Γ [Γ]}
+        → DomDist Γ
+        → (x , A) ∈ Γ
+        → Γ , [Γ] ⊢ fv x ∶ A
+    var! : ∀ {x A Γ [Γ]}
+        → DomDist [Γ]
+        → (x , A) ∈ [Γ]
+        → Γ , [Γ] ⊢ fv x ∶ A
     -- --------------
     -- ## ⟪⟫ rules ##
     -- --------------
-    ⟪⟫-I : ∀ {[Γ] t A}
-        → [] , [Γ] ⊢ t ∶ A
-        → [] , [Γ] ⊢ ! t ∶ ⟪ A ⟫
+    ⟪⟫-I : ∀ {Γ [Γ] t A}
+        → Γ , [Γ] ⊢ t ∶ A
+        → Γ , [Γ] ⊢ ! t ∶ ⟪ A ⟫
     ⟪⟫-E : ∀ L {Γ [Γ] Δ [Δ] x t u A B}
         → Γ , [Γ] ⊢ t ∶ ⟪ A ⟫
         → (x ∉ L → Δ , (x , A) ∷ [Δ] ⊢ u ∶ B)
@@ -85,11 +90,5 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
         → (y ∉ L → ((y , B) ∷ Δ) , [Δ] ⊢ g ∶ C)
         → (Γ ++ Δ) , ([Γ] ++ [Δ])
             ⊢ match t of bv-closing f x or bv-closing g y ∶ C
--- ----------------------
--- ## structural rules ##
--- ----------------------
--- weakening
--- contraction
--- exchange
 
 -- .
