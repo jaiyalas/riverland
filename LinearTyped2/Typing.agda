@@ -29,14 +29,23 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     --     → (x , A) ∈ Δ
     --     → Γ , Δ ⊢ fv x ∶ A
     -- .
-    var : ∀ {x A Γ}
+    -- var : ∀ {x A Γ}
+    --     → DomDist Γ
+    --     → (x , A) ∈ Γ
+    --     → Γ , [] ⊢ fv x ∶ A
+    -- var! : ∀ {x A Δ}
+    --     → DomDist Δ
+    --     → (x , A) ∈ Δ
+    --     → [] , Δ ⊢ fv x ∶ A
+    -- .
+    var : ∀ {x A Γ Δ}
         → DomDist Γ
         → (x , A) ∈ Γ
-        → Γ , [] ⊢ fv x ∶ A
-    var! : ∀ {x A Δ}
+        → Γ , Δ ⊢ fv x ∶ A
+    var! : ∀ {x A Γ Δ}
         → DomDist Δ
         → (x , A) ∈ Δ
-        → [] , Δ ⊢ fv x ∶ A
+        → Γ , Δ ⊢ fv x ∶ A
     -- --------------
     -- ## ‼ rules ##
     -- --------------
@@ -48,21 +57,21 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
         → (∀ x → x ∉ L → Γ+ , (x , A) ∷ Δ+ ⊢ (bv-opening u (fv x)) ∶ B)
         → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be!then u ∶ B
     -- ‼-E-restrict restricts the fv x out of (fvars u) precisely
-    ‼-E-restrict : ∀ {Γ Δ Γ+ Δ+ t u A B}
-        → Γ , Δ ⊢ t ∶ ‼ A
-        -- if a term `G , D ⊢ t ∶ τ` can be formed
-        -- then  we have `map proj₁ (G ++ D) ≡ fvars t`
-        → (∀ x → x ∉ (fvars u) → Γ+ , (x , A) ∷ Δ+ ⊢ bv-opening u (fv x) ∶ B)
-        → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be!then u ∶ B
+    -- ‼-E-restricted : ∀ {Γ Δ Γ+ Δ+ t u A B}
+    --     → Γ , Δ ⊢ t ∶ ‼ A
+    --     -- if a term `G , D ⊢ t ∶ τ` can be formed
+    --     -- then  we have `map proj₁ (G ++ D) ≡ fvars t`
+    --     → (∀ x → x ∉ (fvars u) → Γ+ , (x , A) ∷ Δ+ ⊢ bv-opening u (fv x) ∶ B)
+    --     → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be!then u ∶ B
     -- -------------
     -- ## ⊸ rules ##
     -- -------------
     ⊸-I : ∀ L {Γ Δ t A B}
         → (∀ x → x ∉ L → ((x , A) ∷ Γ) , Δ ⊢ (bv-opening t (fv x)) ∶ B)
         → Γ , Δ ⊢ ƛ t ∶ (A ⊸ B)
-    ⊸-I-restrict : ∀ {Γ Δ t A B}
-        → (∀ x → x ∉ (fvars t) → ((x , A) ∷ Γ) , Δ ⊢ (bv-opening t (fv x)) ∶ B)
-        → Γ , Δ ⊢ ƛ t ∶ (A ⊸ B)
+    -- ⊸-I-restricted : ∀ {Γ Δ t A B}
+    --     → (∀ x → x ∉ (fvars t) → ((x , A) ∷ Γ) , Δ ⊢ (bv-opening t (fv x)) ∶ B)
+    --     → Γ , Δ ⊢ ƛ t ∶ (A ⊸ B)
     ⊸-E : ∀ {Γ Δ Γ+ Δ+ A B t u}
         → Γ , Δ ⊢ t ∶ (A ⊸ B)
         → Γ+ , Δ+ ⊢ u ∶ A
@@ -93,11 +102,11 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
         → (∀ x y → x ∉ L → y ∉ x ∷ L -- y ∉ L
             → ((y , B) ∷ ((x , A) ∷ Γ+)) , Δ+ ⊢ bv-opening (bv-opening u (fv x)) (fv y) ∶ C)
         → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be⟨×⟩then u ∶ C
-    ⊗-E-restrict : ∀ {Γ Δ Γ+ Δ+ t u A B C}
-        → Γ , Δ ⊢ t ∶ (A ⊗ B)
-        → (∀ x y → x ∉ fvars u → y ∉ x ∷ (fvars u)
-            → ((y , B) ∷ ((x , A) ∷ Γ+)) , Δ+ ⊢ bv-opening (bv-opening u (fv x)) (fv y) ∶ C)
-        → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be⟨×⟩then u ∶ C
+    -- ⊗-E-restricted : ∀ {Γ Δ Γ+ Δ+ t u A B C}
+    --     → Γ , Δ ⊢ t ∶ (A ⊗ B)
+    --     → (∀ x y → x ∉ fvars u → y ∉ x ∷ (fvars u)
+    --         → ((y , B) ∷ ((x , A) ∷ Γ+)) , Δ+ ⊢ bv-opening (bv-opening u (fv x)) (fv y) ∶ C)
+    --     → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be⟨×⟩then u ∶ C
     -- -- -------------
     -- -- ## ⊕ rules ##
     -- -- -------------
@@ -112,11 +121,11 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
         → (∀ x → x ∉ L → ((x , A) ∷ Γ+) , Δ+ ⊢ bv-opening f (fv x) ∶ C)
         → (∀ y → y ∉ L → ((y , B) ∷ Γ+) , Δ+ ⊢ bv-opening g (fv y) ∶ C)
         → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ match t of f or g ∶ C
-    ⊕-E-restrict : ∀ {Γ Δ Γ+ Δ+ t f g A B C}
-        → Γ , Δ ⊢ t ∶ (A ⊕ B)
-        → (∀ x → x ∉ fvars f → ((x , A) ∷ Γ+) , Δ+ ⊢ bv-opening f (fv x) ∶ C)
-        → (∀ y → y ∉ fvars g → ((y , B) ∷ Γ+) , Δ+ ⊢ bv-opening g (fv y) ∶ C)
-        → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ match t of f or g ∶ C
+    -- ⊕-E-restricted : ∀ {Γ Δ Γ+ Δ+ t f g A B C}
+    --     → Γ , Δ ⊢ t ∶ (A ⊕ B)
+    --     → (∀ x → x ∉ fvars f → ((x , A) ∷ Γ+) , Δ+ ⊢ bv-opening f (fv x) ∶ C)
+    --     → (∀ y → y ∉ fvars g → ((y , B) ∷ Γ+) , Δ+ ⊢ bv-opening g (fv y) ∶ C)
+    --     → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ match t of f or g ∶ C
 
 
 -- .
