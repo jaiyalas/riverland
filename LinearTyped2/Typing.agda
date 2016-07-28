@@ -51,9 +51,9 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     -- --------------
     ‼-I : ∀ {Δ t A}
         → [] , Δ ⊢ t ∶ A
-        → [] , Δ ⊢ ! t ∶ ‼ A
+        → [] , Δ ⊢ ! t ∶ (‼ A)
     ‼-E : ∀ L {Γ Δ Γ+ Δ+ t u A B}
-        → Γ , Δ ⊢ t ∶ ‼ A
+        → Γ , Δ ⊢ t ∶ (‼ A)
         → (∀ x → x ∉ L → Γ+ , (x , A) ∷ Δ+ ⊢ (bv-opening u (fv x)) ∶ B)
         → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be!then u ∶ B
     -- ‼-E-restrict restricts the fv x out of (fvars u) precisely

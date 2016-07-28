@@ -10,7 +10,7 @@ data LType : Set where
     Num : LType
     ‼_  : LType → LType
     _⊸_ : LType → LType → LType
-    _⊗_  : LType → LType → LType -- 
-    _&_  : LType → LType → LType -- ∧
+    _⊗_  : LType → LType → LType -- ∧s
+    _&_  : LType → LType → LType -- ...
     _⊕_  : LType → LType → LType -- ∨
 -- .

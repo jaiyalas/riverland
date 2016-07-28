@@ -18,22 +18,17 @@ open import FVar
 Assoc : Set → Set → Set
 Assoc A B = List (A × B)
 -- .
-
--- 要增強這個確保不會壯名
+-- . 果然還是要 dual dist domain 
 data DomDist {A : Set} : Assoc FName A → Set where
     [] : DomDist []
     _∷_ : ∀ {Γ x τ}
          → (x∉ : x ∉ (Data.List.map proj₁ Γ))
          → DomDist Γ
          → DomDist ((x , τ) ∷ Γ)
-
 -- .
 Ctx : Set
 Ctx = Assoc FName LType
 -- .
 CtxI : Set
 CtxI = Assoc FName IType
--- .
-
-
 -- .
