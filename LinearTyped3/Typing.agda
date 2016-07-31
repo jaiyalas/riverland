@@ -1,9 +1,10 @@
 module Typing where
 -- .
+open import Data.String renaming (_++_ to _++S_; _≟_ to _≟S_)
 open import Data.Product using (∃; _,_; proj₁)
 -- open import Data.Product hiding (map)
 -- open import Data.Bool using (not)
--- open import Data.String using (_==_)
+open import Data.String using (_≟_)
 open import Data.List
 open import Data.List.Any as Any
 open import Data.List.All as All
@@ -16,6 +17,15 @@ open import FVar
 open import Ctx
 open import Substitution
 -- .
+
+postulate
+    freeCtx : (Γ : FNames) → (t : FNames) → All.All (λ x → x ∉ Γ) t
+-- freeCtx Γ [] = []
+-- freeCtx Γ (x ∷ xs) with Any.any (λ g → x ≟S g) Γ
+-- freeCtx Γ (x ∷ xs) | yes p = {! p  !}
+-- freeCtx Γ (x ∷ xs) | no ¬p = (λ z → ¬p z) ∷ (freeCtx Γ xs)
+-- .
+
 
 data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     litℕ : ∀ {n Γ Δ} → Γ , Δ  ⊢ num n ∶ Num
@@ -31,9 +41,14 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     -- --------------
     -- ## ‼ rules ##
     -- --------------
-    ‼-I : ∀ {Δ t A}
-        → [] , Δ ⊢ t ∶ A
-        → [] , Δ ⊢ ! t ∶ (‼ A)
+    -- ‼-I : ∀ {Δ t A}
+    --     → [] , Δ ⊢ t ∶ A
+    --     → [] , Δ ⊢ ! t ∶ (‼ A)
+    ‼-I : ∀ {Γ Δ t A}
+        -- → freeCtx (dom Γ) (fvars t) -- wwwwwwwwwwwwwwww
+        → All.All (λ x → x ∉ (dom Γ)) (fvars t)
+        → Γ , Δ ⊢ t ∶ A
+        → Γ , Δ ⊢ bang t ∶ (‼ A)
     ‼-E : ∀ L {Γ Δ Γ+ Δ+ t u A B}
         → Γ , Δ ⊢ t ∶ (‼ A)
         → (∀ x → x ∉ L → Γ+ , (x , A) ∷ Δ+ ⊢ (bv-opening u (fv x)) ∶ B)

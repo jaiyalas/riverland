@@ -1,6 +1,6 @@
 module Structural where
 -- .
-open import Data.String renaming (_++_ to _++S_)
+open import Data.String renaming (_++_ to _++S_; _≟_ to _≟S_)
 open import Data.Product using (∃; _,_; proj₁)
 -- open import Data.Product hiding (map)
 -- open import Data.Bool using (not)

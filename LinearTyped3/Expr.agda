@@ -29,7 +29,7 @@ data Expr : ℕ → Set where
     ƛ   : ∀ {n} → (f : Expr (suc n)) → Expr n
     _·_ : ∀ {n} → (f : Expr n) → (e : Expr n) → Expr n
     -- ⟪⟫-I/E
-    !_  : ∀ {n} → Expr n → Expr n
+    bang_  : ∀ {n} → Expr n → Expr n
     ask_be!then_ : ∀ {n}
         → (e : Expr n)
         → (f : Expr (suc n))
@@ -74,7 +74,7 @@ data Expr : ℕ → Set where
 ↑bv (bv i) = bv (↑fin i)    -- ☆ ☆ ☆ type only
 ↑bv (ƛ e) = ƛ (↑bv e)
 ↑bv (f · e) = ↑bv f · ↑bv e
-↑bv (! x) = ! ↑bv x
+↑bv (bang x) = bang ↑bv x
 ↑bv (ask x be!then f) =
     ask ↑bv x be!then ↑bv f
 ↑bv ⟨ x ∣ x₁ ⟩ = ⟨ ↑bv x ∣ ↑bv x₁ ⟩
@@ -94,7 +94,7 @@ data Expr : ℕ → Set where
 ↑expr (bv i) = bv (suc i)  -- ☆ ☆ ☆ type and term
 ↑expr (ƛ e) = ƛ (↑expr e)
 ↑expr (f · e) = ↑expr f · ↑expr e
-↑expr (! x) = ! ↑expr x
+↑expr (bang x) = bang ↑expr x
 ↑expr (ask x be!then f) =
     ask ↑expr x be!then ↑expr f
 ↑expr ⟨ x ∣ x₁ ⟩ = ⟨ ↑expr x ∣ ↑expr x₁ ⟩

@@ -23,7 +23,7 @@ open import Types
 [ n ↦ u ] (fv x) = fv x
 -- .
 [ n ↦ u ] (t · t₁) = [ n ↦ u ] t · [ n ↦ u ] t₁
-[ n ↦ u ] (! t) = ! [ n ↦ u ] t
+[ n ↦ u ] (bang t) = bang [ n ↦ u ] t
 [ n ↦ u ] (ask x be!then t) =
     ask [ n ↦ u ] x be!then [ suc n ↦ ↑expr u ] t
 [ n ↦ u ] ⟨ t ∣ t₁ ⟩ = ⟨ [ n ↦ u ] t ∣ [ n ↦ u ] t₁ ⟩
@@ -52,7 +52,7 @@ open import Types
 [ n ↤ name ] (bv i) = ↑bv (bv i)
 -- .
 [ n ↤ name ] (t · t₁) = [ n ↤ name ] t · [ n ↤ name ] t₁
-[ n ↤ name ] (! t) = ! [ n ↤ name ] t
+[ n ↤ name ] (bang t) = bang [ n ↤ name ] t
 [ n ↤ name ] (ask t be!then f) =
     ask [ n ↤ name ] t be!then [ suc n ↤ name ] f
 [ n ↤ name ] ⟨ f ∣ g ⟩ = ⟨ [ n ↤ name ] f ∣ [ n ↤ name ] g ⟩
@@ -77,7 +77,7 @@ open import Types
 [ fn ↝ t ] (bv i) = bv i
 [ fn ↝ t ] (ƛ x) = ƛ ([ fn ↝ ↑expr t ] x)
 [ fn ↝ t ] (x · x₁) = [ fn ↝ t ] x · [ fn ↝ t ] x₁
-[ fn ↝ t ] (! x) = ! [ fn ↝ t ] x
+[ fn ↝ t ] (bang x) = bang [ fn ↝ t ] x
 [ fn ↝ t ] (ask x be!then f) =
     ask [ fn ↝ t ] x be!then [ fn ↝ ↑expr t ] f
 [ fn ↝ t ] ⟨ x ∣ x₁ ⟩ = ⟨ [ fn ↝ t ] x ∣ [ fn ↝ t ] x₁ ⟩
