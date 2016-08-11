@@ -18,14 +18,8 @@ open import Ctx
 open import Substitution
 -- .
 
-postulate
-    freeCtx : (Γ : FNames) → (t : FNames) → All.All (λ x → x ∉ Γ) t
--- freeCtx Γ [] = []
--- freeCtx Γ (x ∷ xs) with Any.any (λ g → x ≟S g) Γ
--- freeCtx Γ (x ∷ xs) | yes p = {! p  !}
--- freeCtx Γ (x ∷ xs) | no ¬p = (λ z → ¬p z) ∷ (freeCtx Γ xs)
--- .
-
+freeCtx : FNames → FNames → Set
+freeCtx Γ t = All.All (λ x → x ∉ Γ) t
 
 data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     litℕ : ∀ {n Γ Δ} → Γ , Δ  ⊢ num n ∶ Num
@@ -45,24 +39,49 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     --     → [] , Δ ⊢ t ∶ A
     --     → [] , Δ ⊢ ! t ∶ (‼ A)
     ‼-I : ∀ {Γ Δ t A}
-        -- → freeCtx (dom Γ) (fvars t) -- wwwwwwwwwwwwwwww
-        → All.All (λ x → x ∉ (dom Γ)) (fvars t)
         → Γ , Δ ⊢ t ∶ A
+        → freeCtx (dom Γ) (fvars t)
         → Γ , Δ ⊢ bang t ∶ (‼ A)
-    ‼-E : ∀ L {Γ Δ Γ+ Δ+ t u A B}
-        → Γ , Δ ⊢ t ∶ (‼ A)
-        → (∀ x → x ∉ L → Γ+ , (x , A) ∷ Δ+ ⊢ (bv-opening u (fv x)) ∶ B)
-        → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be!then u ∶ B
+    ‼-E : ∀ L {Γ1 Δ1 Γ2 Δ2 t u A B}
+        → Γ1 , Δ1 ⊢ t ∶ (‼ A)
+        → (∀ x → x ∉ L → Γ2 , (x , A) ∷ Δ2 ⊢ (bv-opening u (fv x)) ∶ B)
+        → (Γ1 ++ Γ2) , (Δ1 ++ Δ2) ⊢ ask t be!then u ∶ B
     -- -------------
     -- ## ⊸ rules ##
     -- -------------
     ⊸-I : ∀ L {Γ Δ t A B}
         → (∀ x → x ∉ L → ((x , A) ∷ Γ) , Δ ⊢ (bv-opening t (fv x)) ∶ B)
         → Γ , Δ ⊢ ƛ t ∶ (A ⊸ B)
-    ⊸-E : ∀ {Γ Δ Γ+ Δ+ A B t u}
-        → Γ , Δ ⊢ t ∶ (A ⊸ B)
-        → Γ+ , Δ+ ⊢ u ∶ A
-        → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ t · u ∶ B
+    ⊸-E : ∀ {Γ1 Δ1 Γ2 Δ2 A B t u}
+        → Γ1 , Δ1 ⊢ t ∶ (A ⊸ B)
+        → Γ2 , Δ2 ⊢ u ∶ A
+        → (Γ1 ++ Γ2) , (Δ1 ++ Δ2) ⊢ t · u ∶ B
+    -- -- -------------
+    -- -- ## ⊗ rules ##
+    -- -- -------------
+    ⊗-I : ∀ {Γ1 Δ1 Γ2 Δ2 t u A B}
+        → Γ1 , Δ1 ⊢ t ∶ A
+        → Γ2 , Δ2 ⊢ u ∶ B
+        → (Γ1 ++ Γ2) , (Δ1 ++ Δ2) ⊢ ⟨ t × u ⟩ ∶ (A ⊗ B)
+    ⊗-E : ∀ L {Γ1 Δ1 Γ2 Δ2 t u A B C}
+        → Γ1 , Δ1 ⊢ t ∶ (A ⊗ B)
+        → (∀ x y → x ∉ L → y ∉ x ∷ L -- y ∉ L
+            → ((y , B) ∷ ((x , A) ∷ Γ2)) , Δ2 ⊢ bv-opening (bv-opening u (fv x)) (fv y) ∶ C)
+        → (Γ1 ++ Γ2) , (Δ1 ++ Δ2) ⊢ ask t be⟨×⟩then u ∶ C
+    -- -- -------------
+    -- -- ## ⊕ rules ##
+    -- -- -------------
+    ⊕-I₁ : ∀ {Γ Δ t A B}
+        → Γ , Δ ⊢ t ∶ A
+        → Γ , Δ ⊢ inl t ∶ (A ⊕ B)
+    ⊕-I₂ : ∀ {Γ Δ u A B}
+        → Γ , Δ ⊢ u ∶ B
+        → Γ , Δ ⊢ inr u ∶ (A ⊕ B)
+    ⊕-E : ∀ L {Γ1 Δ1 Γ2 Δ2 t f g A B C}
+        → Γ1 , Δ1 ⊢ t ∶ (A ⊕ B)
+        → (∀ x → x ∉ L → ((x , A) ∷ Γ2) , Δ2 ⊢ bv-opening f (fv x) ∶ C)
+        → (∀ y → y ∉ L → ((y , B) ∷ Γ2) , Δ2 ⊢ bv-opening g (fv y) ∶ C)
+        → (Γ1 ++ Γ2) , (Δ1 ++ Δ2) ⊢ match t of f or g ∶ C
     -- -- -------------
     -- -- ## & rules ##
     -- --  (privilege)
@@ -77,31 +96,4 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     &-E₂ : ∀ {Γ Δ t A B}
         → Γ , Δ ⊢ t ∶ (A & B)
         → Γ , Δ ⊢ snd t ∶ B
-    -- -- -------------
-    -- -- ## ⊗ rules ##
-    -- -- -------------
-    ⊗-I : ∀ {Γ Δ Γ+ Δ+ t u A B}
-        → Γ , Δ ⊢ t ∶ A
-        → Γ+ , Δ+ ⊢ u ∶ B
-        → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ⟨ t × u ⟩ ∶ (A ⊗ B)
-    ⊗-E : ∀ L {Γ Δ Γ+ Δ+ t u A B C}
-        → Γ , Δ ⊢ t ∶ (A ⊗ B)
-        → (∀ x y → x ∉ L → y ∉ x ∷ L -- y ∉ L
-            → ((y , B) ∷ ((x , A) ∷ Γ+)) , Δ+ ⊢ bv-opening (bv-opening u (fv x)) (fv y) ∶ C)
-        → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ ask t be⟨×⟩then u ∶ C
-    -- -- -------------
-    -- -- ## ⊕ rules ##
-    -- -- -------------
-    ⊕-I₁ : ∀ {Γ Δ t A B}
-        → Γ , Δ ⊢ t ∶ A
-        → Γ , Δ ⊢ inl t ∶ (A ⊕ B)
-    ⊕-I₂ : ∀ {Γ Δ u A B}
-        → Γ , Δ ⊢ u ∶ B
-        → Γ , Δ ⊢ inr u ∶ (A ⊕ B)
-    ⊕-E : ∀ L {Γ Δ Γ+ Δ+ t f g A B C}
-        → Γ , Δ ⊢ t ∶ (A ⊕ B)
-        → (∀ x → x ∉ L → ((x , A) ∷ Γ+) , Δ+ ⊢ bv-opening f (fv x) ∶ C)
-        → (∀ y → y ∉ L → ((y , B) ∷ Γ+) , Δ+ ⊢ bv-opening g (fv y) ∶ C)
-        → (Γ ++ Γ+) , (Δ ++ Δ+) ⊢ match t of f or g ∶ C
-
 -- .

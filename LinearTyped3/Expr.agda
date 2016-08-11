@@ -34,10 +34,6 @@ data Expr : ℕ → Set where
         → (e : Expr n)
         → (f : Expr (suc n))
         → Expr n
-    -- &-I/E
-    ⟨_∣_⟩ : ∀ {n} → (f : Expr n) → (g : Expr n) → Expr n
-    fst   : ∀ {n} → (e : Expr n) → Expr n
-    snd   : ∀ {n} → (e : Expr n) → Expr n
     -- ⊗-I/E
     ⟨_×_⟩ : ∀ {n} → (e₁ : Expr n) → (e₂ : Expr n) → Expr n
     ask_be⟨×⟩then_ : ∀ {n}
@@ -52,6 +48,10 @@ data Expr : ℕ → Set where
         → (f : Expr (suc n))
         → (g : Expr (suc n))
         → Expr n
+    -- &-I/E
+    ⟨_∣_⟩ : ∀ {n} → (f : Expr n) → (g : Expr n) → Expr n
+    fst   : ∀ {n} → (e : Expr n) → Expr n
+    snd   : ∀ {n} → (e : Expr n) → Expr n
 -- .
 
 -- .

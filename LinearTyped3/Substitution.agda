@@ -91,10 +91,16 @@ open import Types
 [ fn ↝ t ] (match x of f or g) =
     match [ fn ↝ t ] x of [ fn ↝ ↑expr t ] f or [ fn ↝ ↑expr t ] g
 
+-- Substituting the "n-th" variable in term `t`,
+--   which contains n bounded variables, by term `s`.
 bv-opening : ∀ {n} → Expr (suc n) → Expr n → Expr n
 bv-opening {n} t s = [ n ↦ s ] t
-
+-- Substituting the free-variable named "name" in term `t`,
+--   by the bounded variable indexed "n"
 bv-closing : ∀ {n} → Expr n → FName → Expr (suc n)
 bv-closing {n} t name = [ n ↤ name ] t
+-- .
+
+
 
 -- .
