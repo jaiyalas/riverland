@@ -28,6 +28,7 @@ CtxI = Assoc FName IType
 dom : ∀ {A B} → Assoc A B → List A
 dom = Data.List.map proj₁
 -- .
+-- .
 data DualDomDist {A B : Set} : Assoc A B → Assoc A B → Set where
     [] : DualDomDist [] []
     _∷ᵣ_ : ∀ {Γ Δ x τ}
@@ -39,32 +40,6 @@ data DualDomDist {A B : Set} : Assoc A B → Assoc A B → Set where
         → DualDomDist Γ Δ
         → DualDomDist ((x , τ) ∷ Γ) Δ
 -- .
-data DomDist {A : Set} : Assoc FName A → Set where
-    [] : DomDist []
-    _∷_ : ∀ {Γ x τ}
-         → (x∉ : x ∉ dom Γ)
-         → DomDist Γ
-         → DomDist ((x , τ) ∷ Γ)
--- .
-
-postulate
-    ∈-++-weaken : ∀ {A : Set} {x : A} xs ys zs
-                  → x ∈ (xs ++ zs) → x ∈ (xs ++ ys ++ zs)
-    DDD-insert : ∀ {A B} (Γ Δ1 Δ2 : Assoc A B) x {τ}
-               → DualDomDist Γ (Δ1 ++ Δ2)
-               → x ∉ dom (Γ ++ Δ1 ++ Δ2)
-               → DualDomDist Γ (Δ1 ++ [ x , τ ] ++ Δ2)
-
-∈-tail : ∀ {A : Set} {y x : A} {xs} → ¬ (y ≡ x) → y ∈ (x ∷ xs) → y ∈ xs
-∈-tail {A} {y} {x} {xs} ¬y≡x (here y≡x) = ⊥-elim (¬y≡x y≡x)
-∈-tail {A} {y} {x} {xs} ¬y≡x (there y∈xs) = y∈xs
-
-∉-¬≡ : ∀ {A : Set} {x y : A} {L : List A} → y ∉ (x ∷ L) → ¬ (y ≡ x)
-∉-¬≡ y∉x∷L refl = y∉x∷L (here refl)
-
-¬≡-sym : ∀ {A : Set} {x y : A} → ¬ (x ≡ y) → ¬ (y ≡ x)
-¬≡-sym ¬x≡y refl = ¬x≡y refl
-    -- ≠-sym x≠y refl = x≠y refl
-    -- ddd-r-assoc : ∀ {Γ Δ1 Δ2 a} → DualDomDist Γ (a ∷ (Δ1 ++ Δ2)) → DualDomDist Γ (Δ1 ++ [ a ] ++ Δ2)
-    -- ddd-l-assoc : ∀ {Γ1 Γ2 Δ a} → DualDomDist (a ∷ (Γ1 ++ Γ2)) Δ → DualDomDist (Γ1 ++ [ a ] ++ Γ2) Δ
+freeCtx : FNames → FNames → Set
+freeCtx Γ t = All.All (λ x → x ∉ Γ) t
 -- .

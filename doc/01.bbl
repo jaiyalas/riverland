@@ -1,0 +1,61 @@
+\begin{thebibliography}{10}
+
+\bibitem{Abramsky92}
+{\sc Abramsky, S.}
+\newblock Computational interpretations of linear logic.
+\newblock {\em Theoretical Computer Science 111\/} (1992), 3--57.
+
+\bibitem{Benton92}
+{\sc Benton, N., Bierman, G., and Paiva, V.}
+\newblock Term assignment for intuitionistic linear logic.
+\newblock Tech. rep., 1992.
+
+\bibitem{Benton93}
+{\sc Benton, N., Bierman, G.~M., Hyland, J. M.~E., and de~Paiva, V.}
+\newblock A term calculus for intuitionistic linear logic.
+\newblock In {\em Proceedings of the International Conference on Typed Lambda
+  Calculi and Applications\/} (1993), M.~Bezem and J.~F. Groote, Eds.,
+  Springer-Verlag LNCS 664, pp.~75--90.
+
+\bibitem{Benton95}
+{\sc Benton, N., and Wadler, P.}
+\newblock Linear logic, monads, and the lambda calculus.
+\newblock In {\em In 11 th LICS\/} (1995), IEEE Computer Society Press,
+  pp.~420--431.
+
+\bibitem{Girard87}
+{\sc Girard, J.-Y.}
+\newblock Linear logic.
+\newblock {\em Theor. Comput. Sci. 50}, 1 (Jan. 1987), 1--102.
+
+\bibitem{Girard95}
+{\sc Girard, J.-Y.}
+\newblock Linear logic: Its syntax and semantics, 1995.
+
+\bibitem{Moggi91}
+{\sc Moggi, E.}
+\newblock Notions of computation and monads.
+\newblock {\em Inf. Comput. 93}, 1 (July 1991), 55--92.
+
+\bibitem{Novitzka07}
+{\sc Novitzká, V., and Mihályi, D.}
+\newblock Resource-oriented programming based on linear logic.
+\newblock In {\em in Acta Polytechnica Hungarica 2007\/} (2007), pp.~157--166.
+
+\bibitem{Ronchi94}
+{\sc {Ronchi della Rocca}, S., and Roversi, L.}
+\newblock Lambda calculus and intuitionistic linear logic.
+\newblock In {\em Logic Colloquium '94\/} (Clermont Ferrand, France, 1994).
+
+\bibitem{Turner98}
+{\sc Turner, D.~N., and Wadler, P.}
+\newblock Operational interpretations of linear logic, 1998.
+
+\bibitem{Wadler93}
+{\sc Wadler, P.}
+\newblock A taste of linear logic.
+\newblock In {\em Mathematical Foundations of Computer Science\/} (Gda{\'n}sk,
+  Poland, 1993), A.~M. Borzyszkowski and S.~Sokolowski, Eds., Springer-Verlag
+  LNCS 781, pp.~185--210.
+
+\end{thebibliography}

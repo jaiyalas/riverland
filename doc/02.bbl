@@ -1,0 +1,19 @@
+\begin{thebibliography}{1}
+
+\bibitem{Girard87}
+{\sc Girard, J.-Y.}
+\newblock Linear logic.
+\newblock {\em Theor. Comput. Sci. 50}, 1 (Jan. 1987), 1--102.
+
+\bibitem{Girard95}
+{\sc Girard, J.-Y.}
+\newblock Linear logic: Its syntax and semantics, 1995.
+
+\bibitem{Wadler93}
+{\sc Wadler, P.}
+\newblock A taste of linear logic.
+\newblock In {\em Mathematical Foundations of Computer Science\/} (Gda{\'n}sk,
+  Poland, 1993), A.~M. Borzyszkowski and S.~Sokolowski, Eds., Springer-Verlag
+  LNCS 781, pp.~185--210.
+
+\end{thebibliography}

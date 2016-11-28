@@ -10,17 +10,20 @@ open import Data.List.Any as Any
 open import Data.List.All as All
 open Any.Membership-≡ using (_∈_; _∉_)
 open import Relation.Nullary using (¬_; yes; no)
+open import Relation.Binary.PropositionalEquality
 -- .
 open import Types
 open import Expr
 open import FVar
 open import Ctx
 open import Substitution
+open import Auxiliaries
 -- .
 
-freeCtx : FNames → FNames → Set
-freeCtx Γ t = All.All (λ x → x ∉ Γ) t
 
+
+--  反正 Δ 可以作弊
+-- 那就盡量作弊!! replace every Δi in a case with the very same Δ
 data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     litℕ : ∀ {n Γ Δ} → Γ , Δ  ⊢ num n ∶ Num
     -- -----------------------
@@ -52,10 +55,13 @@ data _,_⊢_∶_ : Ctx → Ctx → Expr 0 → LType → Set where
     ⊸-I : ∀ L {Γ Δ t A B}
         → (∀ x → x ∉ L → ((x , A) ∷ Γ) , Δ ⊢ (bv-opening t (fv x)) ∶ B)
         → Γ , Δ ⊢ ƛ t ∶ (A ⊸ B)
-    ⊸-E : ∀ {Γ1 Δ1 Γ2 Δ2 A B t u}
+    -- .
+    ⊸-E : ∀ {Γ1 Δ1 Γ2 Δ2 Γ3 Δ3 A B t u}
         → Γ1 , Δ1 ⊢ t ∶ (A ⊸ B)
         → Γ2 , Δ2 ⊢ u ∶ A
-        → (Γ1 ++ Γ2) , (Δ1 ++ Δ2) ⊢ t · u ∶ B
+        → Γ1 ⊹ Γ2 ≡ Γ3
+        → Δ1 ⊹ Δ2 ≡ Δ3
+        → Γ3 , Δ3 ⊢ t · u ∶ B
     -- -- -------------
     -- -- ## ⊗ rules ##
     -- -- -------------
