@@ -21,40 +21,45 @@ FName : Set
 FName = String
 -- .
 data Expr : Set
+data Func : ℕ → Set
 -- .
 data Ctr : ℕ → Set where
-    true : Ctr 0
-    false : Ctr 0
-    _▵_ : Ctr 2
+   true : Ctr 0
+   false : Ctr 0
+   _▵_ : Ctr 2
+-- .
 
--- .
+
 data Term : Set where
-    var : FName → Term
-    c₀ : Ctr 0 → Term
-    cₙ : ∀ {n} → Ctr n → Vec Term n → Term
--- .
-data Func : ℕ → Set where
-    fun : ∀ n → Vec FName n → Expr → Func n
+   var : FName → Term
+   _▵_ : Term → Term → Term
+   --  c₀ : Ctr 0 → Term
+   --  cₙ : ∀ {n} → Ctr n → Vec Term n → Term
 -- .
 data FTerm : Set where
-    f-app : ∀ n → Func n → Vec Term n → FTerm
-    f-term : Term → FTerm
+   f-app : ∀ n → Func n → Vec Term n → FTerm
+   f-term : Term → FTerm
 -- .
 data Pattern : ℕ → Set where
-    mat : FName → Pattern 1
-    c₀ : Ctr 0 → Pattern 0
-    cₙ : ∀ {n} → Ctr n → Vec (Pattern 1) n → Pattern 0
+   mat : FName → Pattern 1
+   _▵_ : ∀ {m n} → Pattern m → Pattern n → Pattern (m + n)
+   --  c₀ : Ctr 0 → Pattern 0
+   --  cₙ : ∀ {n} → Ctr n → Vec (Pattern 1) n → Pattern 0
 -- .
 data Case : Set where
-    case : Case
+   case : ∀ {n} → Pattern n → Expr → Case
+-- .
+data Func where
+   fun : ∀ n → Vec FName n → Expr → Func n
 -- .
 data Expr where
-    make_be_⇒_  : ∀ {n} → Pattern n → FTerm → Expr → Expr
-    make_be!_⇒_ : ∀ {n} → Pattern n → Term → Expr → Expr
-    match_of_  : ∀ {n} → Term → Vec Case n → Expr
-    match?_of_ : ∀ {n} → Term → Vec Case n → Expr
+   make_be_⇒_  : ∀ {n} → Pattern n → FTerm → Expr → Expr
+   make_be!_⇒_ : ∀ {n} → Pattern n → Term → Expr → Expr
+   match_of_  : ∀ {n} → Term → Vec Case n → Expr
+   match?_of_ : ∀ {n} → Term → Vec Case n → Expr
 -- .
 -- .
+
 
 
 
