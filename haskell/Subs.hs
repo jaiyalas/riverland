@@ -1,4 +1,5 @@
 module Subs where
+--
 import Expr
 --
 freeVar :: Expr -> [FName]
@@ -73,5 +74,5 @@ subs_vterm v vt (Fst vt') = Fst $ subs_vterm v vt vt'
 subs_vterm v vt (Snd vt') = Snd $ subs_vterm v vt vt'
 --
 subs_case :: Var -> Expr -> Case -> Case
-subs_case v ex (mt :--> e) = mt :--> (subs v ex e)
+subs_case v ex (patt :--> e) = patt :--> (subs v ex e)
 --

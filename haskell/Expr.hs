@@ -3,8 +3,10 @@ module Expr where
 type FName   = String
 type FunName = String
 --
+data Nat = Z | S Nat deriving (Show, Eq)
+--
 data Val     = Pair Val Val
-             | N Int
+             | N Nat
              | B Bool
              deriving (Show, Eq)
 --
@@ -12,18 +14,27 @@ data Mat     = Mat FName
              deriving (Show, Eq)
 data Var     = Var FName
              deriving (Show, Eq)
-data Term a  = Lit  Val
+--
+data Term a  = Lit Val
              | Atom a
              | Prod (Term a) (Term a)
              | Fst  (Term a)
              | Snd  (Term a)
+             --
+             | NatS (Term a)
              deriving (Show, Eq)
+--
 type MTerm   = Term Mat -- add `Fin i` to make Lit impossible
 type VTerm   = Term Var
 --
--- function application
+mat :: FName -> MTerm
+mat = Atom . Mat
+var :: FName -> VTerm
+var = Atom . Var
+--
+-- call-by-named function application
 type FApp    = (FunName, [VTerm])
-data Case    = (:-->) {uncaseMTerm :: MTerm, uncaseExpr :: Expr}
+data Case    = (:-->) {uncasePatt :: MTerm, uncaseExpr :: Expr}
              deriving (Show, Eq)
 --
 data Expr    = Term VTerm
