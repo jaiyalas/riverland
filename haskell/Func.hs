@@ -9,7 +9,7 @@ data FSpec = FSpec { fname :: FunName
            deriving (Show, Eq)
 --
 findFun :: FunName -> FSpace -> FSpec
-findFun fn [] = error "there is no such function"
+findFun fn [] = error $ "there is no such function: " ++ fn
 findFun fn (fs:fss)
     | fn == fname fs = fs
     | otherwise = findFun fn fss
@@ -18,15 +18,15 @@ type FSpace = [FSpec]
 --
 globalFuns :: FSpace
 globalFuns =
-       [ FSpec "Succ" [Mat "#0"] succExpr
-       , FSpec "Plus" [Mat "#0", Mat "#1"] plusExpr
-       , FSpec "Neg" [Mat "#0"] negExpr
-       , FSpec "And" [Mat "#0", Mat "#1"] andExpr
+       [ FSpec "succ" [Mat "#0"] succExpr
+       , FSpec "plus" [Mat "#0", Mat "#1"] plusExpr
+       , FSpec "neg" [Mat "#0"] negExpr
+       , FSpec "and" [Mat "#0", Mat "#1"] andExpr
        ]
 --
 succExpr :: Expr
 succExpr =
-    Match (var "#1")
+    Match (var "#0")
         [ (Lit $ N Z)  :-->
             (Term $ Lit $ N (S Z))
         , (NatS $ mat "u") :-->
@@ -42,8 +42,8 @@ plusExpr =
                 (Term $ Prod (var "a") (var "b")) -- !!! BUG
         , (NatS $ mat "u") :-->
             LetIn (Prod (mat "x2") (mat "u2"))
-                (Right ("Plus", [var "#0", var "u"]))
-                (Term $ Prod (var "x2") (var "u2"))
+                (Right ("plus", [var "#0", var "u"]))
+                (Term $ Prod (var "x2") (NatS $ var "u2"))
         ]
 negExpr :: Expr
 negExpr =

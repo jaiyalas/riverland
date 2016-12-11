@@ -5,7 +5,7 @@ import Expr
 type Env = [(Var, Val)]
 --
 find :: Var -> Env -> (Val, Env)
-find _ [] = error "there is no such variable"
+find va [] = error $ "there is no such variable" ++ (show va)
 find v1 ((v2, val) : env)
     | v1 == v2 = (val, env)
     | otherwise = let (val2, env2) = find v1 env
@@ -25,7 +25,7 @@ appSigma env (NatS vt) =
     in (N $ S nat, env1)
 --
 appSigmaList :: Env -> [VTerm] -> [Val] -> ([Val], Env)
-appSigmaList env [] vs = (vs, env)
+appSigmaList env [] vs = (reverse vs, env)
 appSigmaList env (vt : vts) vs =
     let (val, env') = appSigma env vt
     in appSigmaList env' vts (val : vs)

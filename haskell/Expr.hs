@@ -3,15 +3,21 @@ module Expr where
 type FName   = String
 type FunName = String
 --
-data Nat = Z | S {unS :: Nat} deriving (Show, Eq)
+data Nat = Z | S Nat deriving (Show, Eq)
+int2nat :: Int -> Nat
+int2nat 0 = Z
+int2nat n = S $ int2nat (n-1)
+nat2int :: Nat -> Int
+nat2int Z = 0
+nat2int (S n) = 1 + (nat2int n)
 --
 data Val     = Pair Val Val
-             | N {unN :: Nat}
+             | N Nat
              | B Bool
              deriving (Show, Eq)
 --
 redN :: Val -> Val
-redN = N . unS . unN
+redN (N (S n)) = N n
 --
 data Mat     = Mat FName
              deriving (Show, Eq)

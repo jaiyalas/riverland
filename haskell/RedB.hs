@@ -76,7 +76,7 @@ matching (B b)        (((Atom ma) :--> e) : cs) =
     (zipMatEnv (Atom ma) (B b) [], e)
 --
 matching val (_ : cs) = matching val cs
-matching val [] = error "Non-exhaustive patterns"
+matching val [] = error $ "Non-exhaustive patterns for: " ++ (show val)
 -- -- -- --
 localMatchingN :: Val -> Case -> Maybe (Env, Expr)
 localMatchingN (N n) ((Atom (Mat ma)) :--> e) = Just ([(Var ma, N n)], e)
@@ -86,3 +86,8 @@ localMatchingN (N n) ((Lit (N m)) :--> e)
 localMatchingN (N (S nat)) ((NatS mt) :--> e) =
     localMatchingN (N nat) (mt :--> e)
 localMatchingN _ _ = Nothing
+--
+
+test_neg = redBeta [(Var "#0", B False)] negExpr
+test_plus m n = redBeta [(Var "#0", N $ int2nat m), (Var "#1", N $ int2nat n)] plusExpr
+test_succ m = redBeta [(Var "#0", N $ int2nat m)] succExpr
