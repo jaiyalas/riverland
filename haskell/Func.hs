@@ -20,6 +20,7 @@ globalFuns :: FSpace
 globalFuns =
        [ FSpec "succ" [Mat "#0"] succExpr
        , FSpec "plus" [Mat "#0", Mat "#1"] plusExpr
+       , FSpec "plusR" [Mat "#0"] plusRExpr
        , FSpec "neg" [Mat "#0"] negExpr
        , FSpec "and" [Mat "#0", Mat "#1"] andExpr
        ]
@@ -45,6 +46,14 @@ plusExpr =
                 (Right ("plus", [var "#0", var "u"]))
                 (Term $ Prod (var "x2") (NatS $ var "u2"))
         ]
+plusRExpr :: Expr
+plusRExpr = LetIn (Prod (mat "#0_a") (mat "#0_b")) (Left $ var "#0") $
+    MatEq (var "#0_a", var "#0_b")
+        ((mat "x")  :--> (Term $ Prod (var "x") (Lit $ N Z)))
+        ((Prod (mat "x") (NatS (mat "u"))) :-->
+            (LetIn (Prod (mat "x2") (mat "u2"))
+                (Right ("plusR", [Prod (var "x") (var "u")]))
+                (Term $ Prod (var "x2") (NatS $ var "u2"))))
 negExpr :: Expr
 negExpr =
     Match (var "#0")

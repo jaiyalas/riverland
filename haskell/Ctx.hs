@@ -39,6 +39,8 @@ zipMatEnv (Prod mt1 mt2) (Pair v1 v2) env =
 -- zipMatEnv (Atom (Mat name)) (Pair v1 v2) env = (Var name, Pair v1 v2) : env
 -- these three are identical, merged as follow
 zipMatEnv (Atom (Mat name)) v env = (Var name, v) : env
+zipMatEnv mt v env = error $ "\n\tMT{"++(show mt)++"} \n\tVal{"++(show v)++"} \n\tEnv{"++(show env)++"}"
+--
 zipMatEnvC :: (MTerm, Val) -> Env -> Env
 zipMatEnvC (m, v) e = zipMatEnv m v e
 --

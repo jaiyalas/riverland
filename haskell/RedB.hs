@@ -40,11 +40,11 @@ redBeta env (MatEq (Atom va1, Atom va2) case1 case2) =
         (val2, env2) = find va2 env1
     in if val1 == val2
         then case case1 of
-            ((Atom (Mat ma)) :--> e1) -> redBeta ((Var ma, val1) : env2) e1
+            ((Atom (Mat ma)) :--> e1) -> redBeta ((Var ma, val2) : env2) e1
             ((NatS (Atom (Mat ma))) :--> e2) -> redBeta ((Var ma, redN val1) : env2) e2
         else case case2 of
-            ((Prod (Atom (Mat ma1)) (Atom (Mat ma2))) :--> e1) ->
-                let newEnv = (Var ma2, val2) : (Var ma1, val1) : env2
+            ((Prod mt1 mt2) :--> e1) ->
+                let newEnv = zipMatEnv mt2 val2 $ zipMatEnv mt1 val1 $ env2
                 in redBeta newEnv e1
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 apply :: FSpec -> [Val] -> Val
@@ -91,3 +91,4 @@ localMatchingN _ _ = Nothing
 test_neg = redBeta [(Var "#0", B False)] negExpr
 test_plus m n = redBeta [(Var "#0", N $ int2nat m), (Var "#1", N $ int2nat n)] plusExpr
 test_succ m = redBeta [(Var "#0", N $ int2nat m)] succExpr
+test_plusR (m,n) = redBeta [(Var "#0", Pair (N $ int2nat m) (N $ int2nat n))] plusRExpr
