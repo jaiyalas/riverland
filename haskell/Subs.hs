@@ -32,7 +32,6 @@ freeMat (Match _ cs) =
     concat $ map freeMat_case cs
 freeMat (MatEq _ c1 c2) =
     freeMat_case c1 ++ freeMat_case c2
-
 --
 freeMat' :: MTerm -> [FName]
 freeMat' (Lit  v)   = []
@@ -44,5 +43,28 @@ freeMat' (Snd t)        = freeMat' t
 freeMat_case :: Case -> [FName]
 freeMat_case (mt :--> e) = freeMat' mt ++ freeMat e
 --
-
+subs :: Var -> Dom -> Expr -> Expr
+subs v@(Var name) d@(NF vt) e = case e of
+    (Term vt) ->
+        Term $ subs_vterm v d vt
+    (LetIn mt (Left vt) e) ->
+        LetIn mt (Left (subs_vterm v d vt)) (subs v d e)
+    (LetIn mt (Right (fun, vts)) e) ->
+        LetIn mt (Right (fun, (map (subs_vterm v d) vts))) (subs v d e)
+    (DupIn mt vt e) ->
+        DupIn mt (subs_vterm v d vt) (subs v d e)
+    (Match vt cs) ->
+        Match (subs_vterm v d vt) (map (subs_case v d) cs)
+    (MatEq (vt1, vt2) c1 c2) ->
+        MatEq (subs_vterm v d vt1, subs_vterm v d vt2) (subs_case v d c1) (subs_case v d c2)
+--
+subs_vterm :: Var -> Dom -> VTerm -> VTerm
+subs_vterm _ _ (Lit x) = Lit x
+subs_vterm v (NF vt) (Atom v') = if v == v' then vt else Atom v'
+subs_vterm v d (Prod vt1 vt2) = Prod (subs_vterm v d vt1) (subs_vterm v d vt2)
+subs_vterm v d (Fst vt) = Fst $ subs_vterm v d vt
+subs_vterm v d (Snd vt) = Snd $ subs_vterm v d vt
+--
+subs_case :: Var -> Dom -> Case -> Case
+subs_case v d (mt :--> e) = mt :--> (subs v d e)
 --

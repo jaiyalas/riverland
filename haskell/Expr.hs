@@ -33,6 +33,9 @@ data Expr    = Term VTerm
              | MatEq (VTerm, VTerm) Case Case
              deriving (Show, Eq)
 --
+data Dom     = NF VTerm
+             deriving (Show, Eq)
+--
 {-
 TODO: add index onto `Term a` for limiting the number of atoms.
 TODO: add de brjin index or even locally nameless
