@@ -14,9 +14,9 @@ data Var     = Var FName
              deriving (Show, Eq)
 data Term a  = Lit  Val
              | Atom a
-             | Prod  (Term a) (Term a)
-             | Fst (Term a)
-             | Snd (Term a)
+             | Prod (Term a) (Term a)
+             | Fst  (Term a)
+             | Snd  (Term a)
              deriving (Show, Eq)
 type MTerm   = Term Mat -- add `Fin i` to make Lit impossible
 type VTerm   = Term Var
@@ -31,9 +31,6 @@ data Expr    = Term VTerm
              | DupIn MTerm VTerm Expr
              | Match VTerm [Case]
              | MatEq (VTerm, VTerm) Case Case
-             deriving (Show, Eq)
---
-data Dom     = NF VTerm
              deriving (Show, Eq)
 --
 {-
