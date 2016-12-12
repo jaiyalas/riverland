@@ -1,6 +1,8 @@
 % !TEX TS-program = xelatex
-% \documentclass[a4paper]{article}
-\documentclass[a4paper,twocolumn]{article}
+\documentclass[a4paper]{article}
+% \documentclass[a4paper,twocolumn]{article}
+
+\usepackage{minted}
 
 \usepackage{bussproofs}
 \usepackage{amssymb}
@@ -25,92 +27,58 @@ From our previous researches and studies, we did get some idea of how can we sta
 \item linear logic and types and its term-assignment \cite{Benton92, Wadler93, Benton93, Ronchi94, Girard95, Turner98, Novitzka07}
 \item previous works on reversibility \cite{Yokoyama11, Sparks14, Brown16, Yokoyama16}
 \end{sublist}
-, and come up with a new functional language with reversibility, named \textit{river}, which features:
+, and come up with a new functional language with reversibility, named \textit{river}.
+
+
+
 \begin{description}
-\item[pattern calculus] ...
-\item[matchable] ...
-\item[linear context] ...
-\item[combinator] ...
-\item[restricted function declaration] ...
-\item[global function register] ...
-\item[operational semantics] ...
-\item[syntactic foundation for dup-eq] ...
-\item[well-designed syntax] ...
+\item[Pattern calculus] {
+    To reveal and monitor the information-flow within a given function, one way to go is to realise two techniques
+    \begin{sublist}
+    \item precisely describe very variable in environment, which will be explain later; and
+    \item apply delicate pattern matching.
+    \end{sublist}
+    Here we develop our syntax with an explicit structures for \textit{case}s where all the pattern matching will happen. Besides we also seperate \textit{terms} from \textit{expr}. This is helpful to expose \textit{pattern} and making the implementation of pattern matching simpler.
+}
+\item[Matchable] {
+    The simple pattern matching can get most jobs done. But, since we are expecting all behaviors of variable will be captured in our system, we introduced \textit{matchable}s for denoting variables in matching pattern. In general speaking, occurrences of variable indicate consuming exist information from environment and occurrences of matchable indicate introducing new information into environment. Matchables also provides the basical supporting for ensuring and overwatching the linearity of environment.
+}
+\item[Linear context] {
+    To overwatch the information-flow while computing a function, the linear typed programming show us a very good way - we restrict that every variable can be used once and only once. When a function is getting to be evaluated, input values will be put into environment (as variables) then every use of those value (information) will be precisely controlled by variables and matchables. One variable die then one matchable will be borned, vice versa.
+}
 \end{description}
 
-% \begin{inlinelist}
-% \item \textit{pattern calculus}:
-% \item \textit{matchable}:
-% \item \textit{linear context}:
-% \item \textit{combinator}:
-% \item \textit{restricted function declaration}:
-% \item \textit{global function register}:
-% \end{inlinelist}
+So far we introduced the theniques we used for enhancing (or, in someway, limiting) the capability of our language. Next we will explain several minor efforts that simply improve the usability of it.
 
-\subsection*{The useful techs to go}
+\begin{description}
+% \item[Well-designed syntax] ...
+\item[Syntactic foundation for dup-eq] .
+%% --- %% --- %% --- %% --- %% --- %% --- %% --- %% --- %%
 
+\item[Restricted function declaration] ...
+\item[Global function register] ...
+%% --- %% --- %% --- %% --- %% --- %% --- %% --- %% --- %%
+\item[Operational semantics] ...
+\item[Combinator] ...
+\end{description}
+
+
+
+
+
+
+
+\paragraph{Conclusion} Finally we have our language with a operational semantics and reversed reduction. The source code can be found in here [\url{https://dl.dropboxusercontent.com/u/11966021/src/River.zip}]. Yet there are still lots of improvement can be done. The following are several possible directions.
 \begin{inlinelist}
 \item \textit{view-pattern$^{?}$}:
 \item \textit{de bruijn index}:
 \item \textit{locally nameless}:
 \item \textit{hybrid context}:
 \item \textit{explicit variables management}:
-\item \textit{dependent type}:
-    \begin{sublist}
-    \item \textit{a}: ...
-    \item \textit{b}: ...
-    \end{sublist}
 \end{inlinelist}
 
-\newpage
 
-Linear logic \cite{Girard95}, firstly developed in classical sequent calculus, features that: \textit{any information (truth) cannot be created or discarded arbitrarily}. It also provides an explicit way to formally describe temporal and spatial resources. To see that, as mentioned in Novitzk\'{a}'s work \cite{Novitzka07}, linear logic can realize both of positive and negative data types due to its lack of two important structural rules: \textit{contraction} and \textit{weakening}.
-
-From Curry–Howard correspondence, we know that there must be a type system for linear logic that can format the usage of resources and even the information-flow. This give us an inspiration: it may be possible to use linear type for modeling information-flow, and with that one can determine a trace of computation which can show us how to compute backwards. The rest of this article will show how to develop a type system from linear logic and what those type systems can do and is that possible to develop a reversible langauage from it.
-
-\subsection*{Reversible communication}
-
-Starting by directly creating typing rules from linear logic, immediately we hit a wall: we don't know how to assign term(s) to those rules. For example, what a $\lambda$-term will be for the following rule?
-
-\begin{prooftree}
-\AxiomC{$\vdash \Gamma , A$}
-\AxiomC{$\vdash \Delta , B$}
-\RightLabel{($\otimes$-I)}
-\BinaryInfC{$\vdash \Gamma , \Delta , A \otimes B$}
-\end{prooftree}
-
-The thing is, in classical sequent calculus, there may be more than one consequent on the right-hand-side of a judgment. This is not a scenario that $\lambda$-calculus can fit or apply, but, \textit{$\pi$-calculus} do. The type system developed directly from classical linear logic is known as \textit{session type} \cite{Wadler12}. It have the capability to describe the flow of information or resources involved within the communication between two or even more processes. Obviously this can be used to model distributed system or parallelism.
-
-In distributed system, reversibility leads to a very practical topic named {\textit{reversible distributed system}}. Reversible distributed system have the ability to abort and unwind a computation with states recovery. Brown and Sabry \cite{Brown16} have developed a reversible process language with a high-level semantics. This topic and works look very valuable however it is more like a language for reversible communication rather reversible computation. This is not exactly what we were looking for.
-
-\subsection*{Reversible language}
-
-As discussed above, the idea of creatnig a type system directly from linear logic turns out not be able to solve our problem. So let's try the conventional method. As plenty works have done \cite{Benton92, Wadler93, Benton93, Ronchi94, Turner98}, it actually not hard to rewrite \textit{classical} linear logic rules into \textit{intuitionistic} one, and the type system we want will reveal itself instantly. This type system is called as \textit{linear type} and it is not too hard to give it a term assigment which will be an extension of $\lambda$-calculus.
-
-With the understanding of linear type, lots of researchers put efforts into finding a way to define a well-form reversible programming language. Yokoyama, Axelsen and Gl\"{u}ck have developed a reversible functional language based on the technique of pattern maching \cite{Yokoyama11}. Recently they have also developed a reversible imparetive programming language with reversible flowcharts \cite{Yokoyama16}. Spark and Sabry \cite{Sparks14}, on the other hand, have not used the conventional way. They have developed another logic system from linear logic and discarded some properties those are not helpful for reversible programming. This logic is called reversible logic and they have also defined a simple reversible language, $\Lambda^{R}$ , for it.
-
-% \cite{James12}
-%    Information Effects
-% \cite{James13}
-%    Isomorphic Interpreters from Logically Reversible Abstract Machines
-% \cite{James14}
-%    Theseus: A high level language for reversible computing
-
-\paragraph{Conclusion}
-Our goal is to build a reversible functional language. Our original intuition was, linear type could somehow useful and we might be able to discover a reversible type by directly manipulating linear type. In the end, it looks not that simple as we expected. Linear logic give too much power to describe data structures, like the capability to seperate positive and negative types, which is not necessary for reversible computation. The point will be, firstly find some necessary operators and properties from linear type or logic; and secondly, how to use those operators and properties to record or generate a computation path that can directly show us how to compute backwards. Besides finding some new ways to provide reversibility of functional language, there are still several problem waiting us to overcome. For example, recent works were more focusing on providing reversibility via syntax and semantics. which is great. But less works put efforts on applying type system to verify the correctness for reversibility.
-
-% \begin{prooftree}
-% \AxiomC{$\Gamma \vdash A$}
-% \AxiomC{$B, \Delta \vdash C$}
-% \RightLabel{($\multimap$-L)}
-% \BinaryInfC{$\Gamma, A \multimap B, \Delta \vdash C$}
-% \end{prooftree}
-% \begin{prooftree}
-% \AxiomC{$\Gamma, A \vdash B$}
-% \RightLabel{($\multimap$-R)}
-% \UnaryInfC{$\Gamma \vdash A \multimap B$}
-% \end{prooftree}
-
+\inputminted{haskell}{../haskell/Expr.hs}
 
 \bibliographystyle{acm}
 \bibliography{ref}

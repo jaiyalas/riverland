@@ -1,0 +1,63 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYGdefault{k+kr}{module} \PYGdefault{n+nn}{Expr} \PYGdefault{k+kr}{where}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{k+kr}{type} \PYGdefault{k+kt}{FName}   \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{String}
+\PYGdefault{k+kr}{type} \PYGdefault{k+kt}{FunName} \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{String}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{k+kr}{data} \PYGdefault{k+kt}{Nat} \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Z} \PYGdefault{o}{|} \PYGdefault{k+kt}{S} \PYGdefault{k+kt}{Nat} \PYGdefault{k+kr}{deriving} \PYGdefault{p}{(}\PYGdefault{k+kt}{Show}\PYGdefault{p}{,} \PYGdefault{k+kt}{Eq}\PYGdefault{p}{)}
+
+\PYGdefault{n+nf}{int2nat} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{Int} \PYGdefault{o+ow}{\PYGdefaultZhy{}\PYGdefaultZgt{}} \PYGdefault{k+kt}{Nat}
+\PYGdefault{n+nf}{int2nat} \PYGdefault{l+m+mi}{0} \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Z}
+\PYGdefault{n+nf}{int2nat} \PYGdefault{n}{n} \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{S} \PYGdefault{o}{\PYGdefaultZdl{}} \PYGdefault{n}{int2nat} \PYGdefault{p}{(}\PYGdefault{n}{n}\PYGdefault{o}{\PYGdefaultZhy{}}\PYGdefault{l+m+mi}{1}\PYGdefault{p}{)}
+\PYGdefault{n+nf}{nat2int} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{Nat} \PYGdefault{o+ow}{\PYGdefaultZhy{}\PYGdefaultZgt{}} \PYGdefault{k+kt}{Int}
+\PYGdefault{n+nf}{nat2int} \PYGdefault{k+kt}{Z} \PYGdefault{o+ow}{=} \PYGdefault{l+m+mi}{0}
+\PYGdefault{n+nf}{nat2int} \PYGdefault{p}{(}\PYGdefault{k+kt}{S} \PYGdefault{n}{n}\PYGdefault{p}{)} \PYGdefault{o+ow}{=} \PYGdefault{l+m+mi}{1} \PYGdefault{o}{+} \PYGdefault{p}{(}\PYGdefault{n}{nat2int} \PYGdefault{n}{n}\PYGdefault{p}{)}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{k+kr}{data} \PYGdefault{k+kt}{Val}     \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Pair} \PYGdefault{k+kt}{Val} \PYGdefault{k+kt}{Val}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{N} \PYGdefault{k+kt}{Nat}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{B} \PYGdefault{k+kt}{Bool}
+             \PYGdefault{k+kr}{deriving} \PYGdefault{p}{(}\PYGdefault{k+kt}{Show}\PYGdefault{p}{,} \PYGdefault{k+kt}{Eq}\PYGdefault{p}{)}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{n+nf}{redN} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{Val} \PYGdefault{o+ow}{\PYGdefaultZhy{}\PYGdefaultZgt{}} \PYGdefault{k+kt}{Val}
+\PYGdefault{n+nf}{redN} \PYGdefault{p}{(}\PYGdefault{k+kt}{N} \PYGdefault{p}{(}\PYGdefault{k+kt}{S} \PYGdefault{n}{n}\PYGdefault{p}{))} \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{N} \PYGdefault{n}{n}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{k+kr}{data} \PYGdefault{k+kt}{Mat}     \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Mat} \PYGdefault{k+kt}{FName}
+             \PYGdefault{k+kr}{deriving} \PYGdefault{p}{(}\PYGdefault{k+kt}{Show}\PYGdefault{p}{,} \PYGdefault{k+kt}{Eq}\PYGdefault{p}{)}
+\PYGdefault{k+kr}{data} \PYGdefault{k+kt}{Var}     \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Var} \PYGdefault{k+kt}{FName}
+             \PYGdefault{k+kr}{deriving} \PYGdefault{p}{(}\PYGdefault{k+kt}{Show}\PYGdefault{p}{,} \PYGdefault{k+kt}{Eq}\PYGdefault{p}{)}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{k+kr}{data} \PYGdefault{k+kt}{Term} \PYGdefault{n}{a}  \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Lit} \PYGdefault{k+kt}{Val}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{Atom} \PYGdefault{n}{a}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{Prod} \PYGdefault{p}{(}\PYGdefault{k+kt}{Term} \PYGdefault{n}{a}\PYGdefault{p}{)} \PYGdefault{p}{(}\PYGdefault{k+kt}{Term} \PYGdefault{n}{a}\PYGdefault{p}{)}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{Fst}  \PYGdefault{p}{(}\PYGdefault{k+kt}{Term} \PYGdefault{n}{a}\PYGdefault{p}{)}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{Snd}  \PYGdefault{p}{(}\PYGdefault{k+kt}{Term} \PYGdefault{n}{a}\PYGdefault{p}{)}
+             \PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{NatS} \PYGdefault{p}{(}\PYGdefault{k+kt}{Term} \PYGdefault{n}{a}\PYGdefault{p}{)}
+             \PYGdefault{k+kr}{deriving} \PYGdefault{p}{(}\PYGdefault{k+kt}{Show}\PYGdefault{p}{,} \PYGdefault{k+kt}{Eq}\PYGdefault{p}{)}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{k+kr}{type} \PYGdefault{k+kt}{MTerm}   \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Term} \PYGdefault{k+kt}{Mat} \PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{} add `Fin i` to make Lit impossible}
+\PYGdefault{k+kr}{type} \PYGdefault{k+kt}{VTerm}   \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Term} \PYGdefault{k+kt}{Var}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{n+nf}{mat} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{FName} \PYGdefault{o+ow}{\PYGdefaultZhy{}\PYGdefaultZgt{}} \PYGdefault{k+kt}{MTerm}
+\PYGdefault{n+nf}{mat} \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Atom} \PYGdefault{o}{.} \PYGdefault{k+kt}{Mat}
+\PYGdefault{n+nf}{var} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{FName} \PYGdefault{o+ow}{\PYGdefaultZhy{}\PYGdefaultZgt{}} \PYGdefault{k+kt}{VTerm}
+\PYGdefault{n+nf}{var} \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Atom} \PYGdefault{o}{.} \PYGdefault{k+kt}{Var}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{} call\PYGdefaultZhy{}by\PYGdefaultZhy{}name function application}
+\PYGdefault{k+kr}{type} \PYGdefault{k+kt}{FApp}    \PYGdefault{o+ow}{=} \PYGdefault{p}{(}\PYGdefault{k+kt}{FunName}\PYGdefault{p}{,} \PYGdefault{p}{[}\PYGdefault{k+kt}{VTerm}\PYGdefault{p}{])}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{k+kr}{data} \PYGdefault{k+kt}{Case}    \PYGdefault{o+ow}{=} \PYGdefault{p}{(}\PYGdefault{k+kt}{:\PYGdefaultZhy{}\PYGdefaultZhy{}\PYGdefaultZgt{}}\PYGdefault{p}{)} \PYGdefault{p}{\PYGdefaultZob{}}\PYGdefault{n}{uncasePatt} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{MTerm}\PYGdefault{p}{,} \PYGdefault{n}{uncaseExpr} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{Expr}\PYGdefault{p}{\PYGdefaultZcb{}}
+             \PYGdefault{k+kr}{deriving} \PYGdefault{p}{(}\PYGdefault{k+kt}{Show}\PYGdefault{p}{,} \PYGdefault{k+kt}{Eq}\PYGdefault{p}{)}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{k+kr}{data} \PYGdefault{k+kt}{Expr}    \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Term} \PYGdefault{k+kt}{VTerm}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{LetIn} \PYGdefault{k+kt}{MTerm} \PYGdefault{p}{(}\PYGdefault{k+kt}{Either} \PYGdefault{k+kt}{VTerm} \PYGdefault{k+kt}{FApp}\PYGdefault{p}{)} \PYGdefault{k+kt}{Expr}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{DupIn} \PYGdefault{k+kt}{MTerm} \PYGdefault{k+kt}{VTerm} \PYGdefault{k+kt}{Expr}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{Match} \PYGdefault{k+kt}{VTerm} \PYGdefault{p}{[}\PYGdefault{k+kt}{Case}\PYGdefault{p}{]}
+             \PYGdefault{o}{|} \PYGdefault{k+kt}{MatEq} \PYGdefault{p}{(}\PYGdefault{k+kt}{VTerm}\PYGdefault{p}{,} \PYGdefault{k+kt}{VTerm}\PYGdefault{p}{)} \PYGdefault{k+kt}{Case} \PYGdefault{k+kt}{Case}
+             \PYGdefault{k+kr}{deriving} \PYGdefault{p}{(}\PYGdefault{k+kt}{Show}\PYGdefault{p}{,} \PYGdefault{k+kt}{Eq}\PYGdefault{p}{)}
+\PYGdefault{c+c1}{\PYGdefaultZhy{}\PYGdefaultZhy{}}
+\PYGdefault{c+cm}{\PYGdefaultZob{}\PYGdefaultZhy{}}
+\PYGdefault{c+cm}{TODO: add index onto `Term a` for limiting the number of atoms.}
+\PYGdefault{c+cm}{TODO: add de brjin index or even locally nameless}
+\PYGdefault{c+cm}{\PYGdefaultZhy{}\PYGdefaultZcb{}}
+\end{Verbatim}

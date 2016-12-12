@@ -4,6 +4,7 @@ type FName   = String
 type FunName = String
 --
 data Nat = Z | S Nat deriving (Show, Eq)
+
 int2nat :: Int -> Nat
 int2nat 0 = Z
 int2nat n = S $ int2nat (n-1)
@@ -41,8 +42,9 @@ mat = Atom . Mat
 var :: FName -> VTerm
 var = Atom . Var
 --
--- call-by-named function application
+-- call-by-name function application
 type FApp    = (FunName, [VTerm])
+--
 data Case    = (:-->) {uncasePatt :: MTerm, uncaseExpr :: Expr}
              deriving (Show, Eq)
 --

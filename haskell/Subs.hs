@@ -53,7 +53,7 @@ subs :: Var -> Expr -> Expr -> Expr
     Namely, every `subs` should happen after a normalising.
 -}
 subs v (Term vt1) (Term vt2)
-    = Term $ subs_vterm v vt1 vt2
+    = Term $ subs_vterm v vt1 vt2    
 subs v ex@(Term vt) (LetIn mt (Left vt') e)
     = LetIn mt (Left (subs_vterm v vt vt')) (subs v ex e)
 subs v ex@(Term vt) (LetIn mt (Right (fun, vts)) e)

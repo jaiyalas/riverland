@@ -24,8 +24,7 @@ redBeta env (LetIn mt (Right (fun, vts)) e) =
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- MTerm in dup will be limited in terms of Prod
 -- VTerm in dup will be limited in terms of Atom
-redBeta env (DupIn (Prod (Atom (Mat ma1)) (Atom (Mat ma2)))
-    (Atom va) e) =
+redBeta env (DupIn (Prod (Atom (Mat ma1)) (Atom (Mat ma2))) (Atom va) e) =
         let (val, env') = find va env
             newEnv = (Var ma2, val) : (Var ma1, val) : env'
         in redBeta newEnv e

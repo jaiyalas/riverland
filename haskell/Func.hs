@@ -40,7 +40,7 @@ plusExpr =
     Match (var "#1")
         [ (Lit (N Z))  :-->
             DupIn (Prod (mat "a") (mat "b")) (var "#0")
-                (Term $ Prod (var "a") (var "b")) -- !!! BUG
+                (Term $ Prod (var "a") (var "b")) 
         , (NatS $ mat "u") :-->
             LetIn (Prod (mat "x2") (mat "u2"))
                 (Right ("plus", [var "#0", var "u"]))
