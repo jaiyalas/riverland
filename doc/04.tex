@@ -1,8 +1,40 @@
 % !TEX TS-program = xelatex
 \documentclass[a4paper]{article}
 % \documentclass[a4paper,twocolumn]{article}
+\usepackage[top=1in, bottom=1.25in, left=1.25in, right=1.25in]{geometry}
 
-\usepackage{minted}
+% \usepackage{minted}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{framed}
+\lstloadlanguages{Haskell}
+\lstnewenvironment{code}
+    {\lstset{}%
+      \csname lst@SetFirstLabel\endcsname}
+    {\csname lst@SaveFirstLabel\endcsname}
+    \lstset{
+        frame=none,
+        xleftmargin=2pt,
+        language=haskell,
+        tabsize=3,
+        %
+        basicstyle=\small\sffamily,
+        emphstyle={\bf},
+        commentstyle=\color{gray}\it,
+        stringstyle=\color{red}\bfseries\rmfamily,
+        keywordstyle=\color{blue}\bfseries\rmfamily,
+        %
+        showspaces=false,
+        columns=flexible,
+        showstringspaces=false,
+        morecomment=[l][\color{magenta}]{\#}\%,
+        %%
+        flexiblecolumns=false,
+        basewidth={0.5em,0.45em}
+    }
+
+%% == %% == %% == %% == %% == %% == %% == %% == %% == %% == %%
 
 \usepackage{bussproofs}
 \usepackage{amssymb}
@@ -14,6 +46,8 @@
 % \setlist[inlinelist]{label=[\Roman*]}
 \newlist{sublist}{enumerate*}{1}
 \setlist[sublist]{label=(\roman*)}
+
+%% == %% == %% == %% == %% == %% == %% == %% == %% == %% == %%
 
 \title{River: a functional reversible language}
 \author{Jen-Shin Lin}
@@ -27,9 +61,13 @@ From our previous researches and studies, we did get some idea of how can we sta
 \item linear logic and types and its term-assignment \cite{Benton92, Wadler93, Benton93, Ronchi94, Girard95, Turner98, Novitzka07}
 \item previous works on reversibility \cite{Yokoyama11, Sparks14, Brown16, Yokoyama16}
 \end{sublist}
-, and come up with a new functional language with reversibility, named \textit{river}.
-
-
+, and come up with a new functional language with reversibility, named \textit{river}. It is
+\begin{sublist}
+\item{designed based on pattern calculus rather than $\lambda$ calculus; and}
+\item{is implemented with the idea of how can we expose and manipulate information in linear type and programming; and}
+\item{has a mechanism for reversible computation}.
+\end{sublist}
+The follows are the major features or techniques we used to develop.
 
 \begin{description}
 \item[Pattern calculus] {
@@ -38,47 +76,51 @@ From our previous researches and studies, we did get some idea of how can we sta
     \item precisely describe very variable in environment, which will be explain later; and
     \item apply delicate pattern matching.
     \end{sublist}
-    Here we develop our syntax with an explicit structures for \textit{case}s where all the pattern matching will happen. Besides we also seperate \textit{terms} from \textit{expr}. This is helpful to expose \textit{pattern} and making the implementation of pattern matching simpler.
+    The first thing, we develop our syntax with an explicit structures for \textit{case}s where all the pattern matching will happen. As one can see in source \textbf{Expr.hs}, \textit{case}s can only appeared within the case of two kind of syntax: \textit{MatEq} and \textit{Match} where are the places pattern-matching can be happened. Besides we also seperate the definition of \textit{Terms} out of  \textit{Expr}. This is helpful to expose \textit{pattern} and making the implementation of pattern matching simpler. As matter of fact, by doing this, we can be able to isolate \textit{MTerm} which is in fact representing what a \textit{pattern} could be.
 }
+%% --- %% --- %% --- %% --- %% --- %% --- %% --- %% --- %%
 \item[Matchable] {
-    The simple pattern matching can get most jobs done. But, since we are expecting all behaviors of variable will be captured in our system, we introduced \textit{matchable}s for denoting variables in matching pattern. In general speaking, occurrences of variable indicate consuming exist information from environment and occurrences of matchable indicate introducing new information into environment. Matchables also provides the basical supporting for ensuring and overwatching the linearity of environment.
+    The simple pattern matching can get most jobs done. But, since we are expecting all behaviors of variable will be captured or supervisable in our system. We introduced \textit{matchable}s for denoting variables in matching pattern. This leads us to the result that terms is our language can and will be refined as two subsets: \textit{VTerm} and \textit{MTerm} in \textbf{Expr.hs}. In general speaking, \textit{occurrences of variable}, namely \textit{VTerm}, indicate consuming exist information from environment and \textit{occurrences of matchable}, \textit{MTerm}, on the other hand, indicate introducing new information into environment. Matchables also provides the basical supporting for ensuring and overwatching the linearity of environment. This function is defined as  \textit{zipMatEnv} in \textbf{Ctx.hs}.
 }
+%% --- %% --- %% --- %% --- %% --- %% --- %% --- %% --- %%
 \item[Linear context] {
-    To overwatch the information-flow while computing a function, the linear typed programming show us a very good way - we restrict that every variable can be used once and only once. When a function is getting to be evaluated, input values will be put into environment (as variables) then every use of those value (information) will be precisely controlled by variables and matchables. One variable die then one matchable will be borned, vice versa.
+    To overwatch information-flow while computing a function, namely an \textit{Expr}, the linear typed programming show us a very good way of how -- we restrict that every variable can be used \emph{once and only once}. When a function is getting to be evaluated, input values will be put into environment (as variables) then every use of those value (information) will be precisely controlled by variables and matchables. One variable die then one matchable will be borned, vice versa. This is implemented as the variable-matchable thing mentioned above, but to make this correct, we must limit the happening of arbitrary function applications. In fact, we ask that applications can be happened only in the case of \textit{LetIn} in \textbf{Expr.hs}.
 }
+%% --- %% --- %% --- %% --- %% --- %% --- %% --- %% --- %%
 \end{description}
 
 So far we introduced the theniques we used for enhancing (or, in someway, limiting) the capability of our language. Next we will explain several minor efforts that simply improve the usability of it.
 
 \begin{description}
 % \item[Well-designed syntax] ...
-\item[Syntactic foundation for dup-eq] .
+\item[Syntax for branch control] {
+    The most vital problem of reversible computation is how can we deal and trace branches and mergings, the backwards branches. These branches can be grouped as two kinds. The first one called computation branches which is presented in river as \textit{case}s that have intact structures for both of forewards and backwards evaluations. The other branches are produced by using same value twice or more. This is an problem because, when one compute backwards, these two information may not be the same thing. The linearity property can actually prevent this, but, in practical, we still need to duplicate value or variable. Hence we develop a specific technique for this purpose that is in fact implemented as two parts of our syntax -- \textit{DupIn} and \textit{MatEq} which is defined in \textbf{Expr.hs}. They are the foundation stone of our reversibility here since all possible information-creating/-removing will be described by them.
+}
 %% --- %% --- %% --- %% --- %% --- %% --- %% --- %% --- %%
+\item[Restricted function declaration]{
+    In $\lambda$ calculus, we can define arbitrary function via $\lambda$ abstraction. But not suitable for us since it lackes ability of pattern matching because every constructor are another functions there. This is the reason why we use pattern calculus rather $\lambda$ calculus. A interesting feature in pattern calculus is there is no $\lambda$ abstraction. The way to write a function in pattern calculus is to define a global declaration for it together with several \textit{case}s where is the function body defined. This \textit{case}-instead-of-$\lambda$ thing make us deal no $\lambda$ abstraction and make the whole evaluating simpler.
 
-\item[Restricted function declaration] ...
-\item[Global function register] ...
+    Since there is no way to define a lambda function in river, all primitive functions neede to be pre-defined. Therefore we define a table to globally describe what functions we have and how they will be computed. This is implemented in \textbf{Func.hs} where we have the table named \textit{globalFuns} and a querying function \textit{findFun}.
+}
 %% --- %% --- %% --- %% --- %% --- %% --- %% --- %% --- %%
-\item[Operational semantics] ...
-\item[Combinator] ...
+\item[Combinator]{
+    As one can easily find out in \textbf{Expr.hs}, the whole syntax are defined is several different layers each of which as defined in terms of hasekll-data, which introduces new constructors. This leads us to a situation of tons of constructors matching and restructing. To release ourself from this, we introduce several combinators: \textit{int2nat, nat2int, redN, mat, var}, one can find their definitions in \textbf{Expr.hs} and their usages in all other files, mostly \textbf{Func.hs} and \textbf{RedB.hs}.
+}
 \end{description}
 
+% \paragraph{Conclusion}
+% Finally we have our language with an evaluatior and reversed reduction.
+All the source codes can be found in the following appendix.
+% Yet there are still some improvements can be done. The following are several possible directions.
+% \begin{inlinelist}
+% % \item \textit{view-pattern$^{?}$}:
+% % \item \textit{de bruijn index}:
+% \item \textit{hybrid context}:
+% \item \textit{de bruijn index AND locally nameless}:
+% % \item \textit{explicit variables management}:
+% \end{inlinelist}
 
-
-
-
-
-
-\paragraph{Conclusion} Finally we have our language with a operational semantics and reversed reduction. The source code can be found in here [\url{https://dl.dropboxusercontent.com/u/11966021/src/River.zip}]. Yet there are still lots of improvement can be done. The following are several possible directions.
-\begin{inlinelist}
-\item \textit{view-pattern$^{?}$}:
-\item \textit{de bruijn index}:
-\item \textit{locally nameless}:
-\item \textit{hybrid context}:
-\item \textit{explicit variables management}:
-\end{inlinelist}
-
-
-\inputminted{haskell}{../haskell/Expr.hs}
+\input{04_code.tex}
 
 \bibliographystyle{acm}
 \bibliography{ref}
