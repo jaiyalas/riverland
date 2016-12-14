@@ -18,8 +18,6 @@ appSigma env (Prod vt1 vt2) =
     let (val1, env1) = appSigma env vt1
         (val2, env2) = appSigma env1 vt2
     in (Pair val1 val2, env2)
-appSigma env (Fst  vt) = appSigma env vt
-appSigma env (Snd  vt) = appSigma env vt
 appSigma env (NatS vt) =
     let (N nat, env1) = appSigma env vt
     in (N $ S nat, env1)

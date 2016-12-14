@@ -20,8 +20,6 @@ freeVar' :: VTerm -> [FName]
 freeVar' (Lit  v)   = []
 freeVar' (Atom (Var s)) = [s]
 freeVar' (Prod t1 t2)   = freeVar' t1 ++ freeVar' t2
-freeVar' (Fst  t)       = freeVar' t
-freeVar' (Snd t)        = freeVar' t
 --
 freeMat :: Expr -> [FName]
 freeMat (Term _) = []
@@ -38,8 +36,6 @@ freeMat' :: MTerm -> [FName]
 freeMat' (Lit  v)   = []
 freeMat' (Atom (Mat s)) = [s]
 freeMat' (Prod t1 t2)   = freeMat' t1 ++ freeMat' t2
-freeMat' (Fst  t)       = freeMat' t
-freeMat' (Snd t)        = freeMat' t
 --
 freeMat_case :: Case -> [FName]
 freeMat_case (mt :--> e) = freeMat' mt ++ freeMat e
@@ -53,7 +49,7 @@ subs :: Var -> Expr -> Expr -> Expr
     Namely, every `subs` should happen after a normalising.
 -}
 subs v (Term vt1) (Term vt2)
-    = Term $ subs_vterm v vt1 vt2    
+    = Term $ subs_vterm v vt1 vt2
 subs v ex@(Term vt) (LetIn mt (Left vt') e)
     = LetIn mt (Left (subs_vterm v vt vt')) (subs v ex e)
 subs v ex@(Term vt) (LetIn mt (Right (fun, vts)) e)
@@ -70,8 +66,6 @@ subs_vterm :: Var -> VTerm -> VTerm -> VTerm
 subs_vterm _ _ (Lit x) = Lit x
 subs_vterm v vt (Atom v') = if v == v' then vt else Atom v'
 subs_vterm v vt (Prod vt1 vt2) = Prod (subs_vterm v vt vt1) (subs_vterm v vt vt2)
-subs_vterm v vt (Fst vt') = Fst $ subs_vterm v vt vt'
-subs_vterm v vt (Snd vt') = Snd $ subs_vterm v vt vt'
 --
 subs_case :: Var -> Expr -> Case -> Case
 subs_case v ex (patt :--> e) = patt :--> (subs v ex e)

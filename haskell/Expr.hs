@@ -10,7 +10,7 @@ int2nat 0 = Z
 int2nat n = S $ int2nat (n-1)
 nat2int :: Nat -> Int
 nat2int Z = 0
-nat2int (S n) = 1 + (nat2int n)
+nat2int (S n) = 1 + nat2int n
 --
 data Val     = Pair Val Val
              | N Nat
@@ -19,6 +19,8 @@ data Val     = Pair Val Val
 --
 redN :: Val -> Val
 redN (N (S n)) = N n
+redN _ = error "Destruction on Nat is failed"
+
 --
 data Mat     = Mat FName
              deriving (Show, Eq)
@@ -28,8 +30,6 @@ data Var     = Var FName
 data Term a  = Lit Val
              | Atom a
              | Prod (Term a) (Term a)
-             | Fst  (Term a)
-             | Snd  (Term a)
              --
              | NatS (Term a)
              deriving (Show, Eq)
