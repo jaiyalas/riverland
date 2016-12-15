@@ -3,7 +3,7 @@ module Expr where
 type FName   = String
 type FunName = String
 --
-data Nat = Z | S Nat deriving (Show, Eq)
+data Nat = Z | S Nat deriving (Eq)
 
 int2nat :: Int -> Nat
 int2nat 0 = Z
@@ -11,6 +11,9 @@ int2nat n = S $ int2nat (n-1)
 nat2int :: Nat -> Int
 nat2int Z = 0
 nat2int (S n) = 1 + nat2int n
+
+instance Show Nat where
+    show n = "n" ++ show (nat2int n)
 --
 data Val     = Pair Val Val
              | N Nat
@@ -50,10 +53,12 @@ data Case    = (:~>) { uncasePatt :: MTerm
              deriving (Show, Eq)
 --
 data Expr    = Term VTerm
-             | Return VTerm
              | LetIn MTerm (Either VTerm FApp) Expr
              | DupIn MTerm VTerm Expr
              | Match VTerm [Case]
              | MatEq VTerm Case Case
+             --
+             | Return VTerm
+             | Begin Expr
              deriving (Show, Eq)
 --
