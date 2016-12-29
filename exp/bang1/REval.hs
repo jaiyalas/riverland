@@ -31,8 +31,13 @@ reval (v, env) (LetIn mt (Left vt) e) =
     let midEnv = reval (v, env) e
         (val, env') = revealVT midEnv (mvTrans mt)
     in updateMT env' (vmTrans vt) val
-reval (v, env) (LetIn mt (Right fapp) e) =
-    undefined
+reval (v, env) (LetIn mt (Right (fname, vt)) e) =
+    let midEnv = reval (v, env) e
+        (val, env') = revealVT midEnv (mvTrans mt)
+        (Closure _ fbody, _) = revealVT prelude (var fname)
+        funEnv = reval (val, []) fbody
+        (vFunIn, _)= find funEnv (Var "#in")
+    in updateMT env' (vmTrans vt) vFunIn
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 reval (v, env) (Match vt []) =
     undefined
