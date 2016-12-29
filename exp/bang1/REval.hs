@@ -1,8 +1,9 @@
-module EvalR where
+module REval where
 --
 import Expr
-import Func
 import Ctx
+import Func
+import Pat
 --
 
 evalRCheck :: Env -> Expr -> Val
@@ -14,27 +15,18 @@ evalRCheck env expr =
 
 -- [("anchor", val)]
 
-mvTrans :: MTerm -> VTerm
-mvTrans (Lit v) = Lit v
-mvTrans (Atom (Mat ma)) = var ma
-mvTrans (Prod mt1 mt2) = Prod (mvTrans mt1) (mvTrans mt2)
-mvTrans (NatS mt) = NatS (mvTrans mt)
-
-vmTrans :: VTerm -> MTerm
-vmTrans (Lit v) = Lit v
-vmTrans (Atom (Var va)) = mat va
-vmTrans (Prod vt1 vt2) = Prod (mvTrans vt1) (mvTrans vt2)
-vmTrans (NatS vt) = NatS (mvTrans vt)
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-
-
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-evalR :: Env -> Expr -> (Val, Env)
+
+evalR (val, env2) exp = env1
+<==>
+eval env1 exp = (val, env2)
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+reval :: Env -> Expr -> (Val, Env)
 -- evalR :: Env -> Expr -> Env
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-evalR env (Term vt) = appSigma env vt
+reval env (Term vt) = revealVT env vt
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- whenever Return is reached, there must have exactly one variable in env
 -- -- followed by the setting in Func, this variable should have name as "#0"

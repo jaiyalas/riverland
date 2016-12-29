@@ -1,71 +1,53 @@
 module Func where
 --
 import Expr
---
-data FSpec = FSpec { fname :: FunName
-                   , fargs :: [Mat]
-                   , fbody :: Expr
-                   }
-           deriving (Show, Eq)
---
-findFun :: FunName -> FSpace -> FSpec
-findFun fn [] = error $ "there is no such function: " ++ fn
-findFun fn (fs:fss)
-    | fn == fname fs = fs
-    | otherwise = findFun fn fss
---
-type FSpace = [FSpec]
---
-globalFuns :: FSpace
-globalFuns =
-       [ FSpec "succ" [Mat "#0"] succExpr
-       , FSpec "plus" [Mat "#0", Mat "#1"] plusExpr
-       , FSpec "plusR" [Mat "#0"] plusRExpr
-       , FSpec "neg" [Mat "#0"] negExpr
-       , FSpec "and" [Mat "#0", Mat "#1"] andExpr
-       ]
+import Ctx
 --
 succExpr :: Expr
-succExpr = Begin $
-    Match (var "#0")
+succExpr =
+    Match (var "#in")
         [ (Lit $ N Z)  :~>
-            (Return $ Lit $ N (S Z))
+            (Term $ Lit $ N (S Z))
         , (NatS $ mat "u") :~>
             LetIn (mat "u2")
-                (Right ("succ", [var "u"]))
-                (Return $ NatS $ var "u2")
+                (Right ("succ", var "u"))
+                (Term $ NatS $ var "u2")
         ]
 plusExpr :: Expr
-plusExpr = Begin $
-    Match (var "#1")
+plusExpr =
+    LetIn (Prod (mat "_x") (mat "_y")) (Left $ var "#in") $
+    Match (var "_y")
         [ (Lit (N Z))  :~>
-            DupIn (Prod (mat "a") (mat "b")) (var "#0")
-                (Return $ Prod (var "a") (var "b"))
+            DupIn (Prod (mat "a") (mat "b")) (var "_x")
+                (Term $ Prod (var "a") (var "b"))
         , (NatS $ mat "u") :~>
             LetIn (Prod (mat "x2") (mat "u2"))
-                (Right ("plus", [var "#0", var "u"]))
-                (Return $ Prod (var "x2") (NatS $ var "u2"))
+                (Right ("plus", Prod (var "_x") (var "u")))
+                (Term $ Prod (var "x2") (NatS $ var "u2"))
         ]
 plusRExpr :: Expr
-plusRExpr = Begin $
+plusRExpr =
     -- LetIn (Prod (mat "#0_a") (mat "#0_b")) (Left $ var "#0") $
     -- MatEq (Prod (var "#0_a") (var "#0_b"))
-    MatEq (var "#0")
-        ((mat "x")  :~> (Return $ Prod (var "x") (Lit $ N Z)))
+    MatEq (var "#in")
+        ((mat "x")  :~> (Term $ Prod (var "x") (Lit $ N Z)))
         ((Prod (mat "x") (NatS (mat "u"))) :~>
             (LetIn (Prod (mat "x2") (mat "u2"))
-                (Right ("plusR", [Prod (var "x") (var "u")]))
-                (Return $ Prod (var "x2") (NatS $ var "u2"))))
+                (Right ("plusR", Prod (var "x") (var "u")))
+                (Term $ Prod (var "x2") (NatS $ var "u2"))))
 negExpr :: Expr
-negExpr = Begin $
-    Match (var "#0")
+negExpr =
+    Match (var "#in")
         [ (Lit (B True))  :~>
-            (Return $ Lit $ B False)
+            (Term $ Lit $ B False)
         , (Lit (B False)) :~>
-            (Return $ Lit $ B True)
+            (Term $ Lit $ B True)
         ]
-andExpr :: Expr
-andExpr = undefined
 --
-
+prelude :: Env
+prelude = [ (Var "succ"  , Closure prelude succExpr)
+          , (Var "plus"  , Closure prelude plusExpr)
+          , (Var "plusR" , Closure prelude plusRExpr)
+          , (Var "neg"   , Closure prelude negExpr)
+          ]
 --
