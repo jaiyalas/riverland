@@ -5,7 +5,7 @@ import Expr
 find :: Env -> Var -> (Val, Env)
 find ((v2, val) : env) v1
     | v1 == v2 = (val, env)
-    | otherwise = let (val2, env2) = find env v1 
+    | otherwise = let (val2, env2) = find env v1
         in (val2, (v2, val) : env2)
 find [] v1 = error $ "Cannot find [" ++ (show v1) ++ "]"
 --
@@ -40,6 +40,7 @@ updateMT env (Prod mt1 mt2)
 updateMT env (Atom (Mat name))
              val
              = (Var name, val) : env
+updateMT env (Lit _) _ = env
 updateMT env mt v = error $
     "\n\tMT{"++(show mt)++"}"++
     "\n\tVal{"++(show v)++"}"++

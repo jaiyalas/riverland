@@ -6,22 +6,6 @@ import Func
 import Pat
 --
 
--- evalRCheck :: Env -> Expr -> Val
--- evalRCheck env expr =
---     let (v, e') = evalR env expr
---     in case e' of
---         [] -> v
---         rest -> error $ "unclean environment: " ++ show rest
-
--- [("anchor", val)]
-
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
--- evalR (val, env2) exp = env1
--- <==>
--- eval env1 exp = (val, env2)
---
--- eval :: Env -> Expr -> (Val, Env)
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 reval :: (Val, Env) -> Expr -> Env
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -39,21 +23,33 @@ reval (v, env) (LetIn mt (Right (fname, vt)) e) =
         (vFunIn, _)= find funEnv (Var "#in")
     in updateMT env' (vmTrans vt) vFunIn
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-reval (v, env) (Match vt []) = error "No pattern can be rev-matched"
-reval (v, env) (Match vt (mt :~> cexp : cases)) = if revMatch v (dss cexp)
-    then let midEnv = reval (v, env) cexp
-             (patVal, finEnv) = revealVT midEnv (mvTrans mt)
-         in updateMT finEnv (vmTrans vt) patVal
-    else reval (v, env) (Match vt cases)
-
+reval (v, env) (Match vt []) = error $ "No pattern can be rev-matched"
+reval (v, env) (Match vt (mt :~> cexp : cases)) =
+    -- if revMatch v (dss cexp)
+    if revMatch_2Expr v cexp
+        then let midEnv = reval (v, env) cexp
+                 (patVal, finEnv) = revealVT midEnv (mvTrans mt)
+             in updateMT finEnv (vmTrans vt) patVal
+        else reval (v, env) (Match vt cases)
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-reval (v, env) (DupIn mt vt e) =
-    undefined
-reval (v, env) (MatEq (Prod vt1 vt2) vase1 case2) =
-    undefined
+reval (v, env) (DupIn (Prod mtl mtr) vt e) =
+    let midEnv = reval (v, env) e
+        (lVal, midEnv2) = revealVT midEnv (mvTrans mtl)
+        (rVal, finEnv) = revealVT midEnv2 (mvTrans mtr)
+    in if lVal == rVal
+        then updateMT finEnv (vmTrans vt) rVal
+        else error $ "Reversing DupIn failed with: "++
+            "("++(show lVal)++","++(show rVal)++")"
+reval (v, env) (MatEq vt case1 case2) =
+    reval (v, env) (Match vt [case1,case2])
+reval _ _ = error $ "rEval failed due to unidentified reason"
 
 
-
+revMatch_2Expr :: Val -> Expr -> Bool
+revMatch_2Expr (Pair vl vr) (DupIn mt vt expr)
+    | vl == vr = revMatch (Pair vl vr) (dss expr)
+    | otherwise = False
+revMatch_2Expr v expr = revMatch v (dss expr)
 --
 revMatch :: Val -> VTerm -> Bool
 --
@@ -89,3 +85,10 @@ dss (MatEq vt case1 case2) = error $ "\"MatEq\" cannot be DSS-fied"
 
 
 -- envGen :: ???
+
+testR_succ :: Int -> Env
+testR_succ n = reval ( N $ int2nat n, []) succExpr
+
+testR_plus :: (Int, Int) -> Env
+testR_plus (m, n) = reval ( Pair (N $ int2nat m) (N $ int2nat n)
+                          , []) plusExpr
