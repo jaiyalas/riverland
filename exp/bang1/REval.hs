@@ -84,8 +84,6 @@ dss (MatEq vt case1 case2) = error $ "\"MatEq\" cannot be DSS-fied"
 -- a case-fliper will be helpful
 
 
--- envGen :: ???
-
 testR_succ :: Int -> Env
 testR_succ n = reval ( N $ int2nat n, []) succExpr
 
