@@ -7,6 +7,8 @@ import Pat
 import Eval
 import Rval
 --
+-- TODO: add lambda and function (non-linear) context
+--
 tNeg :: (Val, Env)
 tNeg = eval [(Var "#0", B False)] negExpr
 
