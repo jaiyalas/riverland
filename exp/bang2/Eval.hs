@@ -1,8 +1,7 @@
 module Eval where
 --
 import Expr
-import Func
-import Ctx
+import Env
 import Pat
 --
 eval :: Env -> Expr -> (Val, Env)
@@ -14,31 +13,33 @@ eval env (LetIn mt (Left vt) e) =
         newEnv = update env' mt val
     in eval newEnv e
 --
-eval env (LetIn mt (Right (fun, vt)) e) =
-    let (Closure _ fbody, _) = reveal prelude (var fun)
+eval env (LetIn mt (Right (funame, vt)) e) =
+    let (Closure fbody, _) = peek env (var funame)
         (argVal, env') = reveal env vt
-        (res, _) = eval [(Var "#0", argVal)] fbody
+        localEnv = Env [(Var "#0", argVal)] (getNlCtx env)
+        -- localEnv = update env' (mat "#0") argVal
+        (res, _) = eval localEnv fbody
         newEnv = update env' mt res
     in eval newEnv e
 --
 eval env (DupIn (Prod (Atom (Mat ma1)) (Atom (Mat ma2))) (Atom va) e) =
-        let (val, env') = takeOut env va
-            newEnv = (Var ma2, val) : (Var ma1, val) : env'
+        let (val, env') = takeout env va
+            newEnv = (Var ma2, val) `consL` ((Var ma1, val) `consL` env')
         in eval newEnv e
 --
 eval env (Match vt cases) =
     let (val, env1) = reveal env vt
         (env2, e) = matching val cases
-    in eval (env1 ++ env2) e
+    in eval (env1 `mappend` env2) e
 --
 eval env (MatEq vt case1 case2) = case reveal env vt of
     ((Pair val1 val2), env2) ->
         if val1 == val2
             then case case1 of
                 (Atom (Mat ma) :~> e1) ->
-                    eval ((Var ma, val2) : env2) e1
+                    eval ((Var ma, val2) `consL` env2) e1
                 (NatS (Atom (Mat ma)) :~> e2) ->
-                    eval ((Var ma, redN val1) : env2) e2
+                    eval ((Var ma, redN val1) `consL` env2) e2
                 (pat :~> _) -> error $
                     "<<eval | Illegal pattern>>\n"++
                     "\t"++(show pat)++" is illegal within MatEq-(case1)"

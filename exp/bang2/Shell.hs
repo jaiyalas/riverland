@@ -1,31 +1,38 @@
 module Shell where
 --
 import Expr
-import Ctx
-import Func
+import Env
 import Pat
 import Eval
-import Rval
---
--- TODO: add lambda and function (non-linear) context
+-- import Rval
 --
 tNeg :: (Val, Env)
-tNeg = eval [(Var "#0", B False)] negExpr
+tNeg = eval ((Var "#0", B False) `consL` mempty) negExpr
 
 tSucc :: Int -> (Val, Env)
-tSucc m = eval [(Var "#0", N $ int2nat m)] succExpr
+tSucc m = eval ((Var "#0", N $ int2nat m) `consL` mempty) succExpr
 
 tPlus :: (Int, Int) -> (Val, Env)
-tPlus (m,n) = eval [(Var "#0", Pair (N $ int2nat m) (N $ int2nat n))] plusExpr
+tPlus (m,n) = eval ((Var "#0", Pair (N $ int2nat m) (N $ int2nat n)) `consL` mempty) plusExpr
 
 tPlusR :: (Int, Int) -> (Val, Env)
-tPlusR (m,n) = eval [(Var "#0", Pair (N $ int2nat m) (N $ int2nat n))] plusRExpr
+tPlusR (m,n) = eval
+    ((Var "#0", Pair (N $ int2nat m) (N $ int2nat n)) `consL` mempty) plusRExpr
+
+sr :: (Val, Env) -> IO ()
+sr (v, Env xs ys) = do
+    putStr "Result: "
+    putStrLn $ show v
+    putStrLn $ "Env: " ++
+        (show $ length xs) ++
+        " / " ++
+        (show $ length ys)
 
 --
 
-rSucc :: Int -> Env
-rSucc n = rval ( N $ int2nat n, []) succExpr
-
-rPlus :: (Int, Int) -> Env
-rPlus (m, n) = rval ( Pair (N $ int2nat m) (N $ int2nat n)
-                     , []) plusExpr
+-- rSucc :: Int -> Env
+-- rSucc n = rval ( N $ int2nat n, []) succExpr
+--
+-- rPlus :: (Int, Int) -> Env
+-- rPlus (m, n) = rval ( Pair (N $ int2nat m) (N $ int2nat n)
+--                      , []) plusExpr

@@ -6,10 +6,10 @@ type FunName = String
 data Nat = Z | S Nat deriving (Eq)
 --
 data Val     = N Nat | B Bool | Pair Val Val
-             | Closure Env Expr
+             | Closure Expr
              deriving (Show, Eq)
 --
-data Env = Env Ctx Ctx
+data Env = Env Ctx Ctx deriving (Show, Eq)
 type Ctx = [(Var, Val)]
 --
 data Term a  = Lit Val
@@ -70,24 +70,83 @@ vmTrans (Prod vt1 vt2) = Prod (vmTrans vt1) (vmTrans vt2)
 vmTrans (NatS vt) = NatS (vmTrans vt)
 --
 instance Monoid Env where
-    mempty = Env [] []
+    mempty = Env [] prelude
     mappend (Env xs ys) (Env xs2 ys2) =
-        Env (xs ++ xs2) (ys ++ ys2)
+        Env (xs +>+ xs2) (ys +>+ ys2)
+--
+
+(+>+) :: Eq a => [(a,b)] -> [(a,b)] -> [(a,b)]
+((k,v):xs) +>+ ys
+    | elem k (map fst ys) = (k,v) : xs +>+ (filter ((/= k).fst) ys)
+    | otherwise = (k,v) : xs +>+ ys
+[] +>+ ys = ys
+
+(+<+) :: Eq a => [(a,b)] -> [(a,b)] -> [(a,b)]
+((k,v):xs) +<+ ys
+    | elem k (map fst ys) = xs +<+ ys
+    | otherwise = (k,v) : xs +<+ ys
+[] +<+ ys = ys
+
 --
 getLiCtx :: Env -> Ctx
 getLiCtx (Env x _) = x
 getNlCtx :: Env -> Ctx
 getNlCtx (Env _ y) = y
 --
-headLi :: Env -> Maybe (Var, Val)
-headLi (Env (x : xs) _) = Just x
-headLi (Env [] _) = Nothing
-headNl :: Env -> (Var, Val)
-headNl (Env _ (y : ys)) = Just y
-headNl (Env _ []) = Nothing
+headL :: Env -> Maybe (Var, Val)
+headL (Env (x : xs) _) = Just x
+headL (Env [] _) = Nothing
+headN :: Env -> Maybe (Var, Val)
+headN (Env _ (y : ys)) = Just y
+headN (Env _ []) = Nothing
 --
-putLiCtx :: Env -> (Var, Val) -> Env
-putLiCtx (Env lis nls) vv = (Env (vv : lis) nls)
-putNlCtx :: Env -> (Var, Val) -> Env
-putNlCtx (Env lis nls) vv = (Env lis (vv : nls))
+consL :: (Var, Val) -> Env -> Env
+consL vv (Env lis nls) = (Env (vv : lis) nls)
+consN :: (Var, Val) -> Env  -> Env
+consN vv (Env lis nls) = (Env lis (vv : nls))
 --
+succExpr :: Expr
+succExpr =
+    Match (var "#0")
+        [ (Lit $ N Z)  :~>
+            (Term $ Lit $ N (S Z))
+        , (NatS $ mat "u") :~>
+            LetIn (mat "u2")
+                (Right ("succ", var "u"))
+                (Term $ NatS $ var "u2")
+        ]
+plusExpr :: Expr
+plusExpr =
+    LetIn (Prod (mat "_x") (mat "_y")) (Left $ var "#0") $
+    Match (var "_y")
+        [ (Lit (N Z))  :~>
+            DupIn (Prod (mat "a") (mat "b")) (var "_x")
+                (Term $ Prod (var "a") (var "b"))
+        , (NatS $ mat "u") :~>
+            LetIn (Prod (mat "x2") (mat "u2"))
+                (Right ("plus", Prod (var "_x") (var "u")))
+                (Term $ Prod (var "x2") (NatS $ var "u2"))
+        ]
+plusRExpr :: Expr
+plusRExpr =
+    MatEq (var "#0")
+        ((mat "x")  :~> (Term $ Prod (var "x") (Lit $ N Z)))
+        ((Prod (mat "x") (NatS (mat "u"))) :~>
+            (LetIn (Prod (mat "x2") (mat "u2"))
+                (Right ("plusR", Prod (var "x") (var "u")))
+                (Term $ Prod (var "x2") (NatS $ var "u2"))))
+negExpr :: Expr
+negExpr =
+    Match (var "#0")
+        [ (Lit (B True))  :~>
+            (Term $ Lit $ B False)
+        , (Lit (B False)) :~>
+            (Term $ Lit $ B True)
+        ]
+--
+prelude :: Ctx
+prelude = [ (Var "succ"  , Closure succExpr)
+          , (Var "plus"  , Closure plusExpr)
+          , (Var "plusR" , Closure plusRExpr)
+          , (Var "neg"   , Closure negExpr)
+          ]
