@@ -1,19 +1,35 @@
-module Ctx where
+module Env where
 --
 import Expr
 --
-takeOut :: Env -> Var -> (Val, Env)
-takeOut ((v2, val) : env) v1
-    | v1 == v2 = (val, env)
-    | otherwise = let (val2, env2) = takeOut env v1
-        in (val2, (v2, val) : env2)
-takeOut [] v1 = error $
-    "<<takeOut | Environment exhausted>>\n"++
+
+-- take value out of linear ctx
+takeout :: Env -> Var -> (Val, Env)
+takeout (Env ((v2, val) : lis) nls) v1
+    | v1 == v2 = (val, Env lis nls)
+    | otherwise =
+        let (val2, Env lis' nls') = takeout (Env lis nls) v1
+        in (val2, Env ((v2, val) : lis') nls')
+takeout (Env [] _) v1 = error $
+    "<<takeout | Environment exhausted>>\n"++
     "\tCannot find [" ++ (show v1) ++ "]."
+--
+-- read value from normal ctx
+readout :: Env -> Var -> (Val, Env)
+readout (Env lis ((v2, val) : nls)) v1
+    | v1 == v2 = (val, Env lis ((v2, val) : nls))
+    | otherwise =
+        let (val2, Env lis' nls') = readout (Env lis nls) v1
+        in (val2, Env lis' ((v2, val) : nls'))
+readout (Env [] _) v1 = error $
+    "<<readout | Environment exhausted>>\n"++
+    "\tCannot find [" ++ (show v1) ++ "]."
+--
+
 --
 reveal :: Env -> VTerm -> (Val, Env)
 reveal env (Lit val) = (val, env)
-reveal env (Atom va) = takeOut env va
+reveal env (Atom va) = takeOutLi env va
 reveal env (Prod vt1 vt2) =
     let (val1, env1) = reveal env vt1
         (val2, env2) = reveal env1 vt2
@@ -21,6 +37,12 @@ reveal env (Prod vt1 vt2) =
 reveal env (NatS vt) =
     let (N nat, env1) = reveal env vt
     in (N $ S nat, env1)
+--
+
+
+
+
+
 --
 reveals :: Env -> [VTerm] -> [Val] -> ([Val], Env)
 reveals env [] vs = (reverse vs, env)

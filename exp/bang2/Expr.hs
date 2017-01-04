@@ -9,7 +9,8 @@ data Val     = N Nat | B Bool | Pair Val Val
              | Closure Env Expr
              deriving (Show, Eq)
 --
-type Env = [(Var, Val)]
+data Env = Env Ctx Ctx
+type Ctx = [(Var, Val)]
 --
 data Term a  = Lit Val
              | Atom a
@@ -27,8 +28,10 @@ type FApp    = (FunName, VTerm)
 data Case    = (:~>) MTerm Expr deriving (Show, Eq)
 --
 data Expr    = Term VTerm
+             --
              | LetIn MTerm (Either VTerm FApp) Expr
              | DupIn MTerm VTerm Expr
+             --
              | Match VTerm [Case]
              | MatEq VTerm Case Case
              deriving (Show, Eq)
@@ -65,3 +68,26 @@ vmTrans (Lit v) = Lit v
 vmTrans (Atom (Var va)) = mat va
 vmTrans (Prod vt1 vt2) = Prod (vmTrans vt1) (vmTrans vt2)
 vmTrans (NatS vt) = NatS (vmTrans vt)
+--
+instance Monoid Env where
+    mempty = Env [] []
+    mappend (Env xs ys) (Env xs2 ys2) =
+        Env (xs ++ xs2) (ys ++ ys2)
+--
+getLiCtx :: Env -> Ctx
+getLiCtx (Env x _) = x
+getNlCtx :: Env -> Ctx
+getNlCtx (Env _ y) = y
+--
+headLi :: Env -> Maybe (Var, Val)
+headLi (Env (x : xs) _) = Just x
+headLi (Env [] _) = Nothing
+headNl :: Env -> (Var, Val)
+headNl (Env _ (y : ys)) = Just y
+headNl (Env _ []) = Nothing
+--
+putLiCtx :: Env -> (Var, Val) -> Env
+putLiCtx (Env lis nls) vv = (Env (vv : lis) nls)
+putNlCtx :: Env -> (Var, Val) -> Env
+putNlCtx (Env lis nls) vv = (Env lis (vv : nls))
+--
