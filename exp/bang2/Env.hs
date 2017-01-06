@@ -48,8 +48,7 @@ reveal ctxSW env (NatS vt) =
 -- structural-matchable based random access(?)
 update :: CtxSwitch -> Env -> MTerm -> Val -> Env
 update _ env (Lit _) _ = env -- value is unwritable
-update Normal env (Atom (Mat name)) val = (Var name, val) `consN` env
-update Linear env (Atom (Mat name)) val = (Var name, val) `consL` env
+update ctxSW env (Atom (Mat name)) val = insertSafe ctxSW (Var name, val) env
 update ctxSW env (NatS mt) (N (S nat)) = update ctxSW env mt (N nat)
 update ctxSW env (Prod mt1 mt2) (Pair v1 v2) =
     update ctxSW (update ctxSW env mt1 v1) mt2 v2
@@ -58,6 +57,22 @@ update ctxSW env mt v = error $
     "\tCannot update \"" ++ (show mt) ++ "/" ++ (show v) ++
     "\" in "++(show ctxSW)++" context."
 
+insertSafe :: CtxSwitch -> (Var, Val) -> Env -> Env
+insertSafe Normal (Var name, val) env =
+    if (Var name) `elem` (map fst $ getNCtx env)
+        then (Var name, val) `consN`
+                Env (getLCtx env)
+                    (filter ((/=(Var name)).fst) $ getNCtx env)
+        else (Var name, val) `consN` env
+insertSafe Linear (Var name, val) env =
+    if (Var name) `elem` (map fst $ getLCtx env)
+        then error $ "<<insertSafe | Name Confliction>>\n"++
+                "\tVariable \""++ name ++"\" already exists as \""++
+                (show $ filter ((==(Var name)).fst) $ getLCtx env)++
+                "\" in linear context."
+        else (Var name, val) `consL` env
+
+-- checking existence of variables while updating or inserting
 
 {-- ###################################
 
@@ -76,10 +91,10 @@ update ctxSW env mt v = error $
     | otherwise = (k,v) : xs +<+ ys
 [] +<+ ys = ys
 --
-getLiCtx :: Env -> Ctx
-getLiCtx (Env x _) = x
-getNlCtx :: Env -> Ctx
-getNlCtx (Env _ y) = y
+getLCtx :: Env -> Ctx
+getLCtx (Env x _) = x
+getNCtx :: Env -> Ctx
+getNCtx (Env _ y) = y
 --
 headL :: Env -> Maybe (Var, Val)
 headL (Env (x : xs) _) = Just x
@@ -92,4 +107,3 @@ consL :: (Var, Val) -> Env -> Env
 consL vv (Env lis nls) = (Env (vv : lis) nls)
 consN :: (Var, Val) -> Env  -> Env
 consN vv (Env lis nls) = (Env lis (vv : nls))
---
