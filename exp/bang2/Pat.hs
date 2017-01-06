@@ -2,17 +2,18 @@ module Pat where
 --
 import Expr
 import Env
+import Func
 --
 import Data.Maybe (fromMaybe)
 --
 matching :: Val -> [Case] -> (Env, Expr)
 -- robustness of matchables
 matching v (Atom ma :~> e : _) =
-    (update mempty (Atom ma) v, e)
+    (update Linear mempty (Atom ma) v, e)
 -- for pair
 matching (Pair v1 v2) (Prod mt1 mt2 :~> e : _) =
-    let env1 = update mempty mt1 v1
-        env2 = update env1 mt2 v2
+    let env1 = update Linear mempty mt1 v1
+        env2 = update Linear env1 mt2 v2
     in (env2, e)
 -- for literal value
 matching (N nat) (Lit (N n) :~> e : cs)

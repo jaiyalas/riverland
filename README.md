@@ -7,8 +7,9 @@ Flowing as river; solid as land.
 ### syntax
 
 + [ ] lambda abs/app
-+ [ ] isolated non-linear context
-+ [ ] function context
++ [x] isolated non-linear context
++ [x] function context
++ [ ] update with name-conflit checking
 + [ ] reversed program translator
 + [ ] get rid of MatEq
 + [ ] fixed-point (for recursion)

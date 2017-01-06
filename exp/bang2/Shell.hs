@@ -2,6 +2,7 @@ module Shell where
 --
 import Expr
 import Env
+import Func
 import Pat
 import Eval
 -- import Rval
