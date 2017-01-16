@@ -9,11 +9,11 @@ Flowing as river; solid as land.
 + [ ] lambda abs/app
 + [x] isolated non-linear context
 + [x] function context
-+ [ ] update with name-conflit checking
-+ [ ] reversed program translator
++ [x] update with name-conflit checking
++ [x] reversed program translator
 + [ ] get rid of MatEq
 + [ ] fixed-point (for recursion)
 
 ### linear? typed
 
-+ [ ] ...
++ [ ] type term

@@ -7,9 +7,7 @@ data Env = Env Ctx Ctx deriving (Show, Eq)
 data CtxSwitch = Normal | Linear deriving (Show, Eq)
 
 {-- ###################################
-
     Environment / Context accessors
-
 ################################### --}
 
 -- name based random access(?)
@@ -75,9 +73,7 @@ insertSafe Linear (Var name, val) env =
 -- checking existence of variables while updating or inserting
 
 {-- ###################################
-
     Environment / Context operations
-
 ################################### --}
 (+>+) :: Eq a => [(a,b)] -> [(a,b)] -> [(a,b)]
 ((k,v):xs) +>+ ys

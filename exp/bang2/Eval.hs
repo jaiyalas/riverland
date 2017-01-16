@@ -22,7 +22,6 @@ eval env (LetIn mt (Right (funame, vt)) e) =
         (res, _) = eval localEnv fbody
         newEnv = update Linear env' mt res
     in eval newEnv e
---
 eval env (DupIn (Prod (Atom (Mat ma1)) (Atom (Mat ma2))) (Atom va) e) =
         let (val, env') = raccess Linear env va
             newEnv = (Var ma2, val) `consL` ((Var ma1, val) `consL` env')
