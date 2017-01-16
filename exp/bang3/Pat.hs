@@ -27,7 +27,7 @@ matching (N (S nat))  (NatS mt :~> e : cs) =
     fromMaybe (matching (N (S nat)) cs) $
         localMatchingN (N nat) (mt :~> e)
 -- error and skip
-matching (Closure _) _ = error $
+matching (Closure _ _) _ = error $
     "<<matching | Illegal value >>\n"++
     "\tFunction cannot be matched"
 matching val (_ : cs) = matching val cs

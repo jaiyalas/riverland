@@ -3,20 +3,12 @@ module Func where
 import Expr
 import Env
 --
-
-instance Monoid Env where
-    mempty = Env [] prelude
-    mappend (Env xs ys) (Env xs2 ys2) =
-        Env (xs +>+ xs2) (ys +>+ ys2)
-
 {- ###################################
-
         Predefined functions
-
 ################################### -}
 
 succExpr :: Expr
-succExpr =
+succExpr = Lambda (mat "#0") $
     Match (var "#0")
         [ (Lit $ N Z)  :~>
             (Term $ Lit $ N (S Z))
@@ -26,8 +18,8 @@ succExpr =
                 (Term $ NatS $ var "u2")
         ]
 plusExpr :: Expr
-plusExpr =
-    LetIn (Prod (mat "_x") (mat "_y")) (Left $ var "#0") $
+plusExpr = Lambda (mat "#0") $
+    LetIn (Prod (mat "_x") (mat "_y")) (Left $ Term $ var "#0") $
     Match (var "_y")
         [ (Lit (N Z))  :~>
             DupIn (Prod (mat "a") (mat "b")) (var "_x")
@@ -38,7 +30,7 @@ plusExpr =
                 (Term $ Prod (var "x2") (NatS $ var "u2"))
         ]
 plusRExpr :: Expr
-plusRExpr =
+plusRExpr = Lambda (mat "#0") $
     MatEq (var "#0")
         ((mat "x")  :~> (Term $ Prod (var "x") (Lit $ N Z)))
         ((Prod (mat "x") (NatS (mat "u"))) :~>
@@ -46,7 +38,7 @@ plusRExpr =
                 (Right ("plusR", Prod (var "x") (var "u")))
                 (Term $ Prod (var "x2") (NatS $ var "u2"))))
 negExpr :: Expr
-negExpr =
+negExpr = Lambda (mat "#0") $
     Match (var "#0")
         [ (Lit (B True))  :~>
             (Term $ Lit $ B False)
@@ -54,9 +46,16 @@ negExpr =
             (Term $ Lit $ B True)
         ]
 --
-prelude :: Ctx
-prelude = [ (Var "succ"  , Closure succExpr)
-          , (Var "plus"  , Closure plusExpr)
-          , (Var "plusR" , Closure plusRExpr)
-          , (Var "neg"   , Closure negExpr)
-          ]
+-- prelude' :: Ctx
+-- prelude' = [ (Var "succ"  , Closure succExpr)
+--           , (Var "plus"  , Closure plusExpr)
+--           , (Var "plusR" , Closure plusRExpr)
+--           , (Var "neg"   , Closure negExpr)
+--           ]
+
+prelude :: Expr -> Expr
+prelude e = LetIn (mat "succ") (Left succExpr)
+        $ LetIn (mat "plus")   (Left plusExpr)
+        $ LetIn (mat "plusR")  (Left plusRExpr)
+        $ LetIn (mat "neg")    (Left negExpr)
+        $ e

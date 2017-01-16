@@ -7,17 +7,23 @@ import Pat
 --
 eval :: Env -> Expr -> (Val, Env)
 --
-eval env (Term vt)    = reveal Linear env vt
+eval env (Term vt) = reveal Linear env vt
+
+eval env (Lambda mt body) = (Closure mt body, env)
 --
-eval env (LetIn mt (Left vt) e) =
-    let (val, env') = reveal Linear env vt
+eval env (LetIn mt (Left (Lambda localmt body)) e) =
+    let newEnv = update Normal env mt (Closure localmt body)
+    in eval newEnv e
+-- for not lambda
+eval env (LetIn mt (Left localExp) e) =
+    let (val, env') = eval env localExp
         newEnv = update Linear env' mt val
     in eval newEnv e
 --
 eval env (LetIn mt (Right (funame, vt)) e) =
-    let (Closure fbody, _) = reveal Normal env (var funame)
+    let (Closure (Atom (Mat xx)) fbody, _) = reveal Normal env (var funame)
         (argVal, env') = reveal Linear env vt
-        localEnv = Env [(Var "#0", argVal)] (getNCtx env)
+        localEnv = Env [(Var xx, argVal)] (getNCtx env)
         -- localEnv = update Linear env' (mat "#0") argVal
         (res, _) = eval localEnv fbody
         newEnv = update Linear env' mt res

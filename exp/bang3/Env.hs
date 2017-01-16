@@ -6,6 +6,12 @@ type Ctx = [(Var, Val)]
 data Env = Env Ctx Ctx deriving (Show, Eq)
 data CtxSwitch = Normal | Linear deriving (Show, Eq)
 
+instance Monoid Env where
+    mempty = Env [] []
+    mappend (Env xs ys) (Env xs2 ys2) =
+        Env (xs +>+ xs2) (ys +>+ ys2)
+
+
 {-- ###################################
     Environment / Context accessors
 ################################### --}
