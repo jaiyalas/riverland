@@ -1,26 +1,28 @@
 module Rval where
 --
 import Expr
-import Ctx
+import Env
 import Func
 import Pat
 --
 rval :: (Val, Env) -> Expr -> Env
 --
-rval (v, env) (Term vt) = update env (vmTrans vt) v
+rval (v, env) (Term vt) = update Linear env (vmTrans vt) v
 --
 rval (v, env) (LetIn mt (Left vt) e) =
     let midEnv = rval (v, env) e
-        (val, env') = reveal midEnv (mvTrans mt)
-    in update env' (vmTrans vt) val
+        (val, env') = reveal Linear midEnv (mvTrans mt)
+    in update Linear env' (vmTrans vt) val
 --
 rval (v, env) (LetIn mt (Right (fname, vt)) e) =
     let midEnv = rval (v, env) e
-        (val, env') = reveal midEnv (mvTrans mt)
-        (Closure _ fbody, _) = reveal prelude (var fname)
-        funEnv = rval (val, []) fbody
-        (vFunIn, _)= takeOut funEnv (Var "#0")
-    in update env' (vmTrans vt) vFunIn
+        (val, env') = reveal Linear midEnv (mvTrans mt)
+        (Closure fbody, _) = reveal Normal env (var fname)
+        -- clear local env?
+        localEnv = rval (val, mempty) fbody
+        -- ???
+        (vFunIn, _)= raccess Linear localEnv (Var "#0")
+    in update Linear env' (vmTrans vt) vFunIn
 --
 rval (v, env) (Match vt []) = error $
     "<<rval | Case exhausted>>\n"++
@@ -28,16 +30,16 @@ rval (v, env) (Match vt []) = error $
 rval (v, env) (Match vt (mt :~> cexp : cases)) =
     if oracle v cexp
         then let midEnv = rval (v, env) cexp
-                 (patVal, finEnv) = reveal midEnv (mvTrans mt)
-             in update finEnv (vmTrans vt) patVal
+                 (patVal, finEnv) = reveal Linear midEnv (mvTrans mt)
+             in update Linear finEnv (vmTrans vt) patVal
         else rval (v, env) (Match vt cases)
 --
 rval (v, env) (DupIn (Prod mtl mtr) vt e) =
     let midEnv = rval (v, env) e
-        (lVal, midEnv2) = reveal midEnv (mvTrans mtl)
-        (rVal, finEnv) = reveal midEnv2 (mvTrans mtr)
+        (lVal, midEnv2) = reveal Linear midEnv (mvTrans mtl)
+        (rVal, finEnv) = reveal Linear midEnv2 (mvTrans mtr)
     in if lVal == rVal
-        then update finEnv (vmTrans vt) rVal
+        then update Linear finEnv (vmTrans vt) rVal
         else error $
             "<<rval | Illegal values>>\n"++
             "\tReversing DupIn failed with: "++
@@ -59,7 +61,7 @@ oracle (Pair vl vr) (DupIn mt vt expr)
 oracle v expr = rMatch v (dss expr)
 -- reversed matching
 rMatch :: Val -> VTerm -> Bool
-rMatch (Closure _ _) _ = False
+rMatch (Closure _) _ = False
 rMatch _ (Atom _) = True
 -- 0 <m> 0
 rMatch (N Z) (Lit (N Z)) = True
