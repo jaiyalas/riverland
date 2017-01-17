@@ -6,7 +6,7 @@ type FunName = String
 data Nat = Z | S Nat deriving (Eq)
 --
 data Val     = N Nat | B Bool | Pair Val Val
-             | Closure MTerm Expr
+             | Closure MTerm Expr -- this mt can only be atomic
              deriving (Show, Eq)
 --
 data Term a  = Lit Val
@@ -25,7 +25,7 @@ type FApp    = (FunName, VTerm)
 data Case    = (:~>) MTerm Expr deriving (Show, Eq)
 --
 data Expr    = Term VTerm
-             | Lambda MTerm Expr
+             | Lambda MTerm Expr -- this mt can only be atomic
              --
              | LetIn MTerm (Either Expr FApp) Expr
              | DupIn MTerm VTerm Expr

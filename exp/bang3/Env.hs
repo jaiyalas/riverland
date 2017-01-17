@@ -51,7 +51,8 @@ reveal ctxSW env (NatS vt) =
 
 -- structural-matchable based random access(?)
 update :: CtxSwitch -> Env -> MTerm -> Val -> Env
-update _ env (Lit _) _ = env -- value is unwritable
+-- update _ env (Lit _) _ = env -- value is unwritable
+update ctxSW env (Lit lv) val = insertSafe ctxSW (Var "_@", val) env
 update ctxSW env (Atom (Mat name)) val = insertSafe ctxSW (Var name, val) env
 update ctxSW env (NatS mt) (N (S nat)) = update ctxSW env mt (N nat)
 update ctxSW env (Prod mt1 mt2) (Pair v1 v2) =
@@ -75,6 +76,12 @@ insertSafe Linear (Var name, val) env =
                 (show $ filter ((==(Var name)).fst) $ getLCtx env)++
                 "\" in linear context."
         else (Var name, val) `consL` env
+
+forceVarRM :: CtxSwitch -> Env -> Var -> Env
+forceVarRM Normal (Env lis nls) v = Env lis $ filter ((/= v).fst) nls
+forceVarRM Linear (Env lis nls) v = Env (filter ((/= v).fst) lis) nls
+
+
 
 -- checking existence of variables while updating or inserting
 
@@ -109,3 +116,4 @@ consL :: (Var, Val) -> Env -> Env
 consL vv (Env lis nls) = (Env (vv : lis) nls)
 consN :: (Var, Val) -> Env  -> Env
 consN vv (Env lis nls) = (Env lis (vv : nls))
+--

@@ -21,10 +21,10 @@ eval env (LetIn mt (Left localExp) e) =
     in eval newEnv e
 --
 eval env (LetIn mt (Right (funame, vt)) e) =
-    let (Closure (Atom (Mat xx)) fbody, _) = reveal Normal env (var funame)
+    let (Closure (Atom (Mat ma)) fbody, _) = reveal Normal env (var funame)
         (argVal, env') = reveal Linear env vt
-        localEnv = Env [(Var xx, argVal)] (getNCtx env)
-        -- localEnv = update Linear env' (mat "#0") argVal
+        -- new linear context for lambda applicaion..
+        localEnv = Env [(Var ma, argVal)] (getNCtx env)
         (res, _) = eval localEnv fbody
         newEnv = update Linear env' mt res
     in eval newEnv e

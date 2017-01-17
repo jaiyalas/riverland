@@ -9,21 +9,31 @@ rval :: (Val, Env) -> Expr -> Env
 --
 rval (v, env) (Term vt) = update Linear env (vmTrans vt) v
 --
-rval (v, env) (LetIn mt (Left vt) e) =
+rval (v, env) (Lambda mt body) = env
+--
+rval (v, env) (LetIn (Atom (Mat fName)) (Left (Lambda localmt body)) e) =
+    forceVarRM Normal (rval (v, env) e) (Var fName)
+--
+rval (v, env) (LetIn mt (Left e') e) =
     let midEnv = rval (v, env) e
-        (val, env') = reveal Linear midEnv (mvTrans mt)
-    in update Linear env' (vmTrans vt) val
+        (v', env') = reveal Linear midEnv (mvTrans mt)
+    in rval (v', env') e'
 --
 rval (v, env) (LetIn mt (Right (fname, vt)) e) =
     let midEnv = rval (v, env) e
         (val, env') = reveal Linear midEnv (mvTrans mt)
-        (Closure fbody, _) = reveal Normal env (var fname)
+        (Closure fmt fbody, _) = reveal Normal env (var fname)
         -- clear local env?
-        localEnv = rval (val, mempty) fbody
+        localEnv = rval (val, env') fbody
         -- ???
-        (vFunIn, _)= raccess Linear localEnv (Var "#0")
+        (vFunIn, _)= reveal Linear localEnv (mvTrans fmt)
     in update Linear env' (vmTrans vt) vFunIn
 --
+
+
+
+
+
 rval (v, env) (Match vt []) = error $
     "<<rval | Case exhausted>>\n"++
     "\tNo pattern can be rev-matched"
@@ -61,7 +71,7 @@ oracle (Pair vl vr) (DupIn mt vt expr)
 oracle v expr = rMatch v (dss expr)
 -- reversed matching
 rMatch :: Val -> VTerm -> Bool
-rMatch (Closure _) _ = False
+rMatch (Closure _ _) _ = False
 rMatch _ (Atom _) = True
 -- 0 <m> 0
 rMatch (N Z) (Lit (N Z)) = True
