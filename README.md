@@ -13,6 +13,11 @@ Flowing as river; solid as land.
 + [x] reversed program translator
 + [ ] get rid of MatEq
 + [ ] fixed-point (for recursion)
++ [ ] -----
++ [ ] no need for GC/throwing used variable away (this should be prevented by type-checker)
++ [ ] shouldn't deal with name conflict (as we using env)
++ [ ] require: `(let ... in ... , let ... in ...)` aka ...?
++ [ ] closure needs env (ref: River)
 
 ### linear? typed
 

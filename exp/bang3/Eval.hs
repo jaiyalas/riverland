@@ -11,9 +11,10 @@ eval env (Term vt) = reveal Linear env vt
 
 eval env (Lambda mt body) = (Closure mt body, env)
 --
-eval env (LetIn mt (Left (Lambda localmt body)) e) =
-    let newEnv = update Normal env mt (Closure localmt body)
-    in eval newEnv e
+eval env (LetIn (Atom (Mat fname)) (Left (Lambda localmt body)) e) =
+    let newEnv = update Normal env (Atom (Mat fname)) (Closure localmt body)
+        (res, env') = eval newEnv e
+    in (res, forceVarRM Normal env' (Var fname))
 -- for not lambda
 eval env (LetIn mt (Left localExp) e) =
     let (val, env') = eval env localExp

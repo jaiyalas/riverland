@@ -25,11 +25,11 @@ type FApp    = (FunName, VTerm)
 data Case    = (:~>) MTerm Expr deriving (Show, Eq)
 --
 data Expr    = Term VTerm
-            --  | Lam MTerm Expr
+             --  | Lam MTerm Expr
              --
              | LetIn MTerm (Either VTerm FApp) Expr
              | DupIn MTerm VTerm Expr
-             --
+             -- 
              | Match VTerm [Case]
              | MatEq VTerm Case Case
              deriving (Show, Eq)

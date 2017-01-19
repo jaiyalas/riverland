@@ -27,8 +27,8 @@ sr :: (Val, Env) -> IO ()
 sr (v, Env xs ys) = do
     putStr "Result: "
     putStrLn $ show v
-    -- putStrLn $ "Env: " ++
-        -- (show $ length xs) ++ " / " ++ (show $ length ys)
+    putStrLn $ "Env: " ++
+        (show xs) ++ "\n   | " ++ (show ys)
 --
 rrunSucc :: Int -> IO ()
 rrunSucc n = print $ rval (N $ int2nat n, mempty) $
@@ -55,10 +55,6 @@ rrunId n = rval (N $ int2nat n, mempty)
         (Right ("id", Lit $ N $ int2nat n))
         (Term $ var "res")
 
-rrunK n = rval (N $ int2nat n, mempty)
-    $ LetIn (mat "res")
-        (Left $ Term $ Lit $ N $ int2nat 0)
-        (Term $ var "res")
 
 -- srr :: Env -> IO ()
 -- srr env = sr $ raccess Linear env (Var "#0")

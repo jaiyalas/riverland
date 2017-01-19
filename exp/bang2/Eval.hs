@@ -7,7 +7,7 @@ import Pat
 --
 eval :: Env -> Expr -> (Val, Env)
 --
-eval env (Term vt)    = reveal Linear env vt
+eval env (Term vt) = reveal Linear env vt
 --
 eval env (LetIn mt (Left vt) e) =
     let (val, env') = reveal Linear env vt

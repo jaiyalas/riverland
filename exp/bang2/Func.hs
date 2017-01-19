@@ -14,13 +14,20 @@ instance Monoid Env where
         Predefined functions
 
 ################################### -}
+prelude :: Ctx
+prelude = [ (Var "succ"  , Closure succExpr)
+          , (Var "plus"  , Closure plusExpr)
+          , (Var "plusR" , Closure plusRExpr)
+          , (Var "neg"   , Closure negExpr)
+          ]
+
 
 succExpr :: Expr
 succExpr =
     Match (var "#0")
         [ (Lit $ N Z)  :~>
             (Term $ Lit $ N (S Z))
-        , (NatS $ mat "u") :~>
+        , (NatS $ mat "u") :~> -- (S u)
             LetIn (mat "u2")
                 (Right ("succ", var "u"))
                 (Term $ NatS $ var "u2")
@@ -54,9 +61,3 @@ negExpr =
             (Term $ Lit $ B True)
         ]
 --
-prelude :: Ctx
-prelude = [ (Var "succ"  , Closure succExpr)
-          , (Var "plus"  , Closure plusExpr)
-          , (Var "plusR" , Closure plusRExpr)
-          , (Var "neg"   , Closure negExpr)
-          ]

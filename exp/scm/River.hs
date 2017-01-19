@@ -47,7 +47,7 @@ eval (Lam x body) env = Fun env x body
 eval (App f y) env =
   case eval f env of
     Fun env' x body ->
-       eval body ((x,lookUp y env) : env)
+       eval body ((x,lookUp y env) : env')
     _ -> error "not a function"
 eval (Let x e1 e2) env =
    eval e2 ((x, eval e1 env) : env)

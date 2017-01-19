@@ -4,7 +4,7 @@ import Expr
 --
 type Ctx = [(Var, Val)]
 data Env = Env Ctx Ctx deriving (Show, Eq)
-data CtxSwitch = Normal | Linear deriving (Show, Eq)
+data CtxSwitch = Linear | Normal deriving (Show, Eq)
 
 {-- ###################################
     Environment / Context accessors

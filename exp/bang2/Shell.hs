@@ -11,7 +11,8 @@ tNeg :: (Val, Env)
 tNeg = eval ((Var "#0", B False) `consL` mempty) negExpr
 
 tSucc :: Int -> (Val, Env)
-tSucc m = eval ((Var "#0", N $ int2nat m) `consL` mempty) succExpr
+tSucc m = eval ((Var "#0", N $ int2nat m) `consL` mempty)
+    succExpr
 
 tPlus :: (Int, Int) -> (Val, Env)
 tPlus (m,n) = eval ((Var "#0", Pair (N $ int2nat m) (N $ int2nat n)) `consL` mempty) plusExpr
