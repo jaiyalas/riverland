@@ -6,8 +6,13 @@ import Env
 {- ###################################
         Predefined functions
 ################################### -}
-
-
+prelude :: Expr -> Expr
+prelude e = LetIn (mat "succ")   (Left succExpr)
+          $ LetIn (mat "plus")   (Left plusExpr)
+          $ LetIn (mat "plusR")  (Left plusRExpr)
+          $ LetIn (mat "neg")    (Left negExpr)
+          $ e
+--
 succExpr :: Expr
 succExpr = Lambda (mat "#0") $
     Match (var "#0")
@@ -47,16 +52,3 @@ negExpr = Lambda (mat "#0") $
             (Term $ Lit $ B True)
         ]
 --
--- prelude' :: Ctx
--- prelude' = [ (Var "succ"  , Closure succExpr)
---           , (Var "plus"  , Closure plusExpr)
---           , (Var "plusR" , Closure plusRExpr)
---           , (Var "neg"   , Closure negExpr)
---           ]
-
-prelude :: Expr -> Expr
-prelude e = LetIn (mat "succ") (Left succExpr)
-        $ LetIn (mat "plus")   (Left plusExpr)
-        $ LetIn (mat "plusR")  (Left plusRExpr)
-        $ LetIn (mat "neg")    (Left negExpr)
-        $ e

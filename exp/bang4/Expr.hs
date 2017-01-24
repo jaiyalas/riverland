@@ -5,8 +5,10 @@ type FunName = String
 --
 data Nat = Z | S Nat deriving (Eq)
 --
-data Val     = N Nat | B Bool | Pair Val Val
-             | Closure MTerm Expr -- this mt can only be atomic
+data Val     = N Nat
+             | B Bool
+             | Pr Val Val
+             | Closure Env Expr 
              deriving (Show, Eq)
 --
 data Term a  = Lit Val
@@ -25,14 +27,57 @@ type FApp    = (FunName, VTerm)
 data Case    = (:~>) MTerm Expr deriving (Show, Eq)
 --
 data Expr    = Term VTerm
-             | Lambda MTerm Expr -- this mt can only be atomic
+             | Lambda MTerm Expr {-Atomic mt-}
              --
              | LetIn MTerm (Either Expr FApp) Expr
              | DupIn MTerm VTerm Expr
+             | Pair Expr Expr
              --
              | Match VTerm [Case]
              | MatEq VTerm Case Case
              deriving (Show, Eq)
+--
+type Ctx = [(Var, Val)]
+--
+data Env = Env Ctx Ctx deriving (Show, Eq)
+--
+instance Monoid Env where
+    mempty = Env [] []
+    mappend (Env xs ys) (Env xs2 ys2) =
+        Env (xs +>+ xs2) (ys +>+ ys2)
+--
+data CtxSwitch = Normal | Linear deriving (Show, Eq)
+--
+-- ##### ##### ##### ##### ##### ##### ##### ##### #####
+--
+(+>+) :: Eq a => [(a,b)] -> [(a,b)] -> [(a,b)]
+((k,v):xs) +>+ ys
+    | elem k (map fst ys) = (k,v) : xs +>+ (filter ((/= k).fst) ys)
+    | otherwise = (k,v) : xs +>+ ys
+[] +>+ ys = ys
+
+(+<+) :: Eq a => [(a,b)] -> [(a,b)] -> [(a,b)]
+((k,v):xs) +<+ ys
+    | elem k (map fst ys) = xs +<+ ys
+    | otherwise = (k,v) : xs +<+ ys
+[] +<+ ys = ys
+--
+getLCtx :: Env -> Ctx
+getLCtx (Env x _) = x
+getNCtx :: Env -> Ctx
+getNCtx (Env _ y) = y
+--
+headL :: Env -> Maybe (Var, Val)
+headL (Env (x : xs) _) = Just x
+headL (Env [] _) = Nothing
+headN :: Env -> Maybe (Var, Val)
+headN (Env _ (y : ys)) = Just y
+headN (Env _ []) = Nothing
+--
+consL :: (Var, Val) -> Env -> Env
+consL vv (Env lis nls) = (Env (vv : lis) nls)
+consN :: (Var, Val) -> Env  -> Env
+consN vv (Env lis nls) = (Env lis (vv : nls))
 --
 -- ##### ##### ##### ##### ##### ##### ##### ##### #####
 --

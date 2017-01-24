@@ -5,15 +5,15 @@ import Env
 import Func
 --
 import Data.Maybe (fromMaybe)
---
+-- match a new env together with next expr
 matching :: Val -> [Case] -> (Env, Expr)
 -- robustness of matchables
 matching v (Atom ma :~> e : _) =
-    (update Linear mempty (Atom ma) v, e)
+    (insert Linear mempty (Atom ma) v, e)
 -- for pair
-matching (Pair v1 v2) (Prod mt1 mt2 :~> e : _) =
-    let env1 = update Linear mempty mt1 v1
-        env2 = update Linear env1 mt2 v2
+matching (Pr v1 v2) (Prod mt1 mt2 :~> e : _) =
+    let env1 = insert Linear mempty mt1 v1
+        env2 = insert Linear env1   mt2 v2
     in (env2, e)
 -- for literal value
 matching (N nat) (Lit (N n) :~> e : cs)
@@ -23,7 +23,7 @@ matching (B b) (Lit (B b') :~> e : cs)
     | b == b' = (mempty, e)
     | otherwise = matching (B b) cs
 -- for de-Succ
-matching (N (S nat))  (NatS mt :~> e : cs) =
+matching (N (S nat)) (NatS mt :~> e : cs) =
     fromMaybe (matching (N (S nat)) cs) $
         localMatchingN (N nat) (mt :~> e)
 -- error and skip

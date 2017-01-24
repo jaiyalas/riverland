@@ -7,52 +7,54 @@ import Pat
 --
 eval :: Env -> Expr -> (Val, Env)
 --
-eval env (Term vt) = reveal Linear env vt
-
-eval env (Lambda mt body) = (Closure mt body, env)
+eval env (Term vt) = (raccessVT Linear env vt, env)
 --
-eval env (LetIn (Atom (Mat fname)) (Left (Lambda localmt body)) e) =
-    let newEnv = update Normal env (Atom (Mat fname)) (Closure localmt body)
-        (res, env') = eval newEnv e
-    in (res, forceVarRM Normal env' (Var fname))
--- for not lambda
+eval env (Lambda mt body) = (Closure env (Lambda mt body), env)
+--
+eval env (Pair e1 e2) =
+    let (v1, env1) = eval env e1
+        (v2, env2) = eval env1 e2
+    in (Pr v1 v2, env2)
+--
+eval env (LetIn mt (Left (Lambda argMT body)) e) =
+    let newEnv = insert Normal env mt (Closure env (Lambda argMT body))
+    in eval newEnv e
+--
 eval env (LetIn mt (Left localExp) e) =
     let (val, env') = eval env localExp
-        newEnv = update Linear env' mt val
+        newEnv = insert Linear env' mt val
     in eval newEnv e
 --
-eval env (LetIn mt (Right (funame, vt)) e) =
-    let (Closure (Atom (Mat ma)) fbody, _) = reveal Normal env (var funame)
-        (argVal, env') = reveal Linear env vt
-        -- new linear context for lambda applicaion..
-        localEnv = Env [(Var ma, argVal)] (getNCtx env)
-        (res, _) = eval localEnv fbody
-        newEnv = update Linear env' mt res
+eval env (LetIn mt (Right (fname, vt)) e) =
+    let Closure fenv (Lambda argMT fbody) = raccessVT Normal env (var fname)
+        argVal = raccessVT Linear env vt
+        (res, _) = eval (insert Linear fenv argMT argVal) fbody
+        newEnv = insert Linear env mt res
     in eval newEnv e
 eval env (DupIn (Prod (Atom (Mat ma1)) (Atom (Mat ma2))) (Atom va) e) =
-        let (val, env') = raccess Linear env va
-            newEnv = (Var ma2, val) `consL` ((Var ma1, val) `consL` env')
+        let val = raccessVT Linear env (Atom va)
+            newEnv = (Var ma2, val) `consL` ((Var ma1, val) `consL` env)
         in eval newEnv e
 --
 eval env (Match vt cases) =
-    let (val, env1) = reveal Linear env vt
+    let val = raccessVT Linear env vt
         (env2, e) = matching val cases
-    in eval (env1 `mappend` env2) e
+    in eval (env `mappend` env2) e
 --
-eval env (MatEq vt case1 case2) = case reveal Linear env vt of
-    ((Pair val1 val2), env2) ->
+eval env (MatEq vt case1 case2) = case raccessVT Linear env vt of
+    (Pr val1 val2) ->
         if val1 == val2
             then case case1 of
                 (Atom (Mat ma) :~> e1) ->
-                    eval ((Var ma, val2) `consL` env2) e1
+                    eval ((Var ma, val2) `consL` env) e1
                 (NatS (Atom (Mat ma)) :~> e2) ->
-                    eval ((Var ma, redN val1) `consL` env2) e2
+                    eval ((Var ma, redN val1) `consL` env) e2
                 (pat :~> _) -> error $
                     "<<eval | Illegal pattern>>\n"++
                     "\t"++(show pat)++" is illegal within MatEq-(case1)"
             else case case2 of
                 (Prod mt1 mt2 :~> e1) ->
-                    let newEnv = update Linear (update Linear env2 mt1 val1) mt2 val2
+                    let newEnv = insert Linear (insert Linear env mt1 val1) mt2 val2
                     in eval newEnv e1
                 (pat :~> _) -> error $
                     "<<eval | Illegal pattern>>\n"++
