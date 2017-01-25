@@ -18,7 +18,7 @@ rval (v, env) (LetIn mt (Left e') e) =
     let midEnv = rval (v, env) e
         (v', env') = reveal Linear midEnv (mvTrans mt)
     in rval (v', env') e'
---
+-- application: 2 expr / 2 variable / 2 Lit
 rval (v, env) (LetIn mt (Right (fname, vt)) e) =
     let midEnv = rval (v, env) e
         (val, env') = reveal Linear midEnv (mvTrans mt)

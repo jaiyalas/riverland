@@ -34,3 +34,10 @@ Flowing as river; solid as land.
 ### linear? typed
 
 + [ ] type term
+
+### plus
+
++ [ ] non-determinism monad
++ [ ] maybe monad
++ [ ] state monad
++ [ ] monad zero

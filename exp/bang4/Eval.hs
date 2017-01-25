@@ -4,18 +4,20 @@ import Expr
 import Env
 import Func
 import Pat
---
+-- rm: returned env
 eval :: Env -> Expr -> (Val, Env)
 --
 eval env (Term vt) = (raccessVT Linear env vt, env)
 --
+-- del?
 eval env (Lambda mt body) = (Closure env (Lambda mt body), env)
 --
 eval env (Pair e1 e2) =
     let (v1, env1) = eval env e1
-        (v2, env2) = eval env1 e2
-    in (Pr v1 v2, env2)
+        (v2, env2) = eval env e2
+    in (Pr v1 v2, env)
 --
+-- LetRecIn?
 eval env (LetIn mt (Left (Lambda argMT body)) e) =
     let newEnv = insert Normal env mt (Closure env (Lambda argMT body))
     in eval newEnv e
@@ -33,7 +35,7 @@ eval env (LetIn mt (Right (fname, vt)) e) =
         -- put args to local env
         argedEnv = insert Linear fenv argMT argVal
         -- put f back to local env
-        recurEnv = insert Normal argedEnv (mat fname) $ fun
+        recurEnv = insert Normal argedEnv (mat fname) fun
         -- eval f with local env
         (res, _) = eval recurEnv fbody
         -- restore env and put result into it
@@ -47,8 +49,8 @@ eval env (DupIn (Prod (Atom (Mat ma1)) (Atom (Mat ma2))) (Atom va) e) =
 eval env (Match vt cases) =
     let val = raccessVT Linear env vt
         (env2, e) = matching val cases
-    in eval (env `mappend` env2) e
---
+    in eval (env2 `mappend` env) e
+-- 整理
 eval env (MatEq vt case1 case2) = case raccessVT Linear env vt of
     (Pr val1 val2) ->
         if val1 == val2

@@ -6,9 +6,12 @@ import Func
 import Pat
 import Eval
 
-run :: FName -> Val -> (Val, Env)
+run :: FunName -> Val -> (Val, Env)
 run fname args = eval mempty $ prelude $
     LetIn (mat "res") (Right (fname, Lit args)) (Term $ var "res")
+
+-- rval with non-empty env
+-- "plus" (3, Let y = 5 in x + y) 
 
 -- --
 -- rrunSucc :: Int -> IO ()
