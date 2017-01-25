@@ -29,6 +29,7 @@ Flowing as river; solid as land.
 + [ ] re-write/check Shell
 + [ ] get rid of `NatS`
     + due to `matching (N (S nat))  (NatS mt :~> e : cs) = ...`
++ [ ] how to re-new function-space?
 
 ### linear? typed
 

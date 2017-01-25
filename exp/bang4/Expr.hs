@@ -8,7 +8,7 @@ data Nat = Z | S Nat deriving (Eq)
 data Val     = N Nat
              | B Bool
              | Pr Val Val
-             | Closure Env Expr 
+             | Closure Env Expr
              deriving (Show, Eq)
 --
 data Term a  = Lit Val
@@ -16,6 +16,12 @@ data Term a  = Lit Val
              | Prod (Term a) (Term a)
              | NatS (Term a)
              deriving (Show, Eq)
+--
+instance Functor Term where
+    fmap f (Lit v) = (Lit v)
+    fmap f (Atom a) = Atom (f a)
+    fmap f (Prod t1 t2) = Prod (fmap f t1) (fmap f t2)
+    fmap f (NatS t) = NatS (fmap f t)
 --
 newtype Mat     = Mat FName deriving (Show, Eq)
 type    MTerm   = Term Mat
@@ -93,7 +99,7 @@ instance Show Nat where
 --
 redN :: Val -> Val
 redN (N (S n)) = N n
-redN _ = error "Destruction on Nat is failed"
+redN x = error $ "S cannot be destructed from (" ++ (show x) ++ ")"
 --
 mat :: FName -> MTerm
 mat = Atom . Mat
@@ -101,14 +107,8 @@ var :: FName -> VTerm
 var = Atom . Var
 --
 mvTrans :: MTerm -> VTerm
-mvTrans (Lit v) = Lit v
-mvTrans (Atom (Mat ma)) = var ma
-mvTrans (Prod mt1 mt2) = Prod (mvTrans mt1) (mvTrans mt2)
-mvTrans (NatS mt) = NatS (mvTrans mt)
+mvTrans = fmap (\(Mat x) -> Var x)
 --
 vmTrans :: VTerm -> MTerm
-vmTrans (Lit v) = Lit v
-vmTrans (Atom (Var va)) = mat va
-vmTrans (Prod vt1 vt2) = Prod (vmTrans vt1) (vmTrans vt2)
-vmTrans (NatS vt) = NatS (vmTrans vt)
+vmTrans = fmap (\(Var x) -> Mat x)
 --

@@ -11,6 +11,7 @@ prelude e = LetIn (mat "succ")   (Left succExpr)
           $ LetIn (mat "plus")   (Left plusExpr)
           $ LetIn (mat "plusR")  (Left plusRExpr)
           $ LetIn (mat "neg")    (Left negExpr)
+          $ LetIn (mat "id")     (Left $ Lambda (mat "x") (Term $ var "x"))
           $ e
 --
 succExpr :: Expr
