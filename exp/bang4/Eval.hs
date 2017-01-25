@@ -26,9 +26,17 @@ eval env (LetIn mt (Left localExp) e) =
     in eval newEnv e
 --
 eval env (LetIn mt (Right (fname, vt)) e) =
-    let Closure fenv (Lambda argMT fbody) = raccessVT Normal env (var fname)
+    let -- get function as f
+        fun@(Closure fenv (Lambda argMT fbody)) = raccessVT Normal env (var fname)
+        -- get args
         argVal = raccessVT Linear env vt
-        (res, _) = eval (insert Linear fenv argMT argVal) fbody
+        -- put args to local env
+        argedEnv = insert Linear fenv argMT argVal
+        -- put f back to local env
+        recurEnv = insert Normal argedEnv (mat fname) $ fun
+        -- eval f with local env
+        (res, _) = eval recurEnv fbody
+        -- restore env and put result into it
         newEnv = insert Linear env mt res
     in eval newEnv e
 eval env (DupIn (Prod (Atom (Mat ma1)) (Atom (Mat ma2))) (Atom va) e) =

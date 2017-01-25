@@ -10,16 +10,16 @@ raccess Linear (Env ((v2, val) : lis) nls) v1
     | otherwise = raccess Linear (Env lis nls) v1
 --
 raccess Linear (Env [] _) v1 = error $
-    "<<takeout | Environment exhausted>>\n"++
-    "\tCannot find \"" ++ (show v1) ++ "\" in linear context."
+    "<<raccess | Environment exhausted>>\n"++
+    "\tCannot find (" ++ (show v1) ++ ") in linear context."
 --
 raccess Normal (Env lis ((v2, val) : nls)) v1
     | v1 == v2 = val
     | otherwise = raccess Normal (Env lis nls) v1
 --
 raccess Normal (Env _ []) v1 = error $
-    "<<takeout | Environment exhausted>>\n"++
-    "\tCannot find \"" ++ (show v1) ++ "\" in normal context."
+    "<<raccess | Environment exhausted>>\n"++
+    "\tCannot find (" ++ (show v1) ++ ") in normal context."
 --
 raccessVT :: CtxSwitch -> Env -> VTerm -> Val
 raccessVT _ env (Lit val) = val
@@ -41,6 +41,6 @@ insert ctxSW env (Prod mt1 mt2) (Pr v1 v2) =
 insert ctxSW env (NatS mt) (N (S nat)) = insert ctxSW env mt (N nat)
 --
 insert ctxSW env mt v = error $
-    "<<update | Unknown>>\n"++
-    "\tCannot update \"" ++ (show mt) ++ "/" ++ (show v) ++
+    "<<insert | Unknown>>\n"++
+    "\tCannot insert \"" ++ (show mt) ++ "/" ++ (show v) ++
     "\" in "++(show ctxSW)++" context."

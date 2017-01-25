@@ -10,6 +10,24 @@ import Eval
 -- runSucc :: Int -> IO ()
 -- runSucc n = sr $ eval mempty $ prelude $
 --     LetIn (mat "res") (Right ("succ", Lit $ N $ int2nat n)) (Term $ var "res")
+
+runId n = sr $ eval mempty $ prelude
+    $ LetIn (mat "id")
+        (Left $
+            Lambda (mat "x") (Term $ var "x")
+        )
+    $ LetIn (mat "res")
+        (Right ("id", Lit $ N $ int2nat n))
+        (Term $ var "res")
+
+
+run :: FName -> Val -> IO ()
+run fname args = sr $ eval mempty $ prelude $
+    LetIn (mat "res") (Right (fname, Lit args)) (Term $ var "res")
+
+int :: Int -> Val
+int = N . int2nat
+
 --
 -- runPlus :: Int -> Int -> IO ()
 -- runPlus m n = sr $ eval mempty $ prelude $
@@ -23,12 +41,12 @@ import Eval
 --         (Right ("plusR", Lit $ Pair (N $ int2nat m) (N $ int2nat n)))
 --         (Term $ var "res")
 --
--- sr :: (Val, Env) -> IO ()
--- sr (v, Env xs ys) = do
---     putStr "Result: "
---     putStrLn $ show v
---     putStrLn $ "Env: " ++
---         (show xs) ++ "\n   | " ++ (show ys)
+sr :: (Val, Env) -> IO ()
+sr (v, Env xs ys) = do
+    putStr "Result: "
+    putStrLn $ show v
+    putStrLn $ "Env: " ++
+        (show xs) ++ "\n   | " ++ (show $ map fst ys)
 -- --
 -- rrunSucc :: Int -> IO ()
 -- rrunSucc n = print $ rval (N $ int2nat n, mempty) $
@@ -36,16 +54,8 @@ import Eval
 --     LetIn (mat "res")
 --         (Right ("succ", Lit $ N $ int2nat n))
 --         (Term $ var "res")
-
-
-runId n = eval mempty
-    $ LetIn (mat "id")
-        (Left $
-            Lambda (mat "x") (Term $ var "x")
-        )
-    $ LetIn (mat "res")
-        (Right ("id", Lit $ N $ int2nat n))
-        (Term $ var "res")
+--
+--
 -- rrunId n = rval (N $ int2nat n, mempty)
 --     $ LetIn (mat "id")
 --         (Left $
@@ -55,7 +65,6 @@ runId n = eval mempty
 --         (Right ("id", Lit $ N $ int2nat n))
 --         (Term $ var "res")
 --
-
 -- srr :: Env -> IO ()
 -- srr env = sr $ raccess Linear env (Var "#0")
 -- --
