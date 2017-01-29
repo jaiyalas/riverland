@@ -1,9 +1,8 @@
-module Env where
+module Env (subs, insert) where
 --
 import Expr
 --
-
--- name based random access(?)
+-- name-based lookup
 raccess :: CtxSwitch -> Env -> Var -> Val
 raccess Linear (Env ((v2, val) : lis) nls) v1
     | v1 == v2 = val
@@ -21,15 +20,16 @@ raccess Normal (Env _ []) v1 = error $
     "<<raccess | Environment exhausted>>\n"++
     "\tCannot find (" ++ (show v1) ++ ") in normal context."
 --
-raccessVT :: CtxSwitch -> Env -> VTerm -> Val
-raccessVT _ env (Lit val) = val
-raccessVT ctxSW env (Atom va) = raccess ctxSW env va
-raccessVT ctxSW env (Prod vt1 vt2) =
-    Pr (raccessVT ctxSW env vt1) (raccessVT ctxSW env vt2)
-raccessVT ctxSW env (NatS vt) =
-    let (N nat) = raccessVT ctxSW env vt in (N $ S nat)
+-- variable substitution
+subs :: CtxSwitch -> Env -> VTerm -> Val
+subs _ env (Lit val) = val
+subs ctxSW env (Atom va) = raccess ctxSW env va
+subs ctxSW env (Prod vt1 vt2) =
+    Pr (subs ctxSW env vt1) (subs ctxSW env vt2)
+subs ctxSW env (NatS vt) =
+    let (N nat) = subs ctxSW env vt in (N $ S nat)
 --
--- structural-matchable based random access(?)
+-- matchable insertion
 insert :: CtxSwitch -> Env -> MTerm -> Val -> Env
 insert _ env (Lit _) _ = env -- value is unwritable
 insert Linear (Env ls ns) (Atom (Mat name)) val =

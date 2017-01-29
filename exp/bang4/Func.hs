@@ -7,10 +7,10 @@ import Env
         Predefined functions
 ################################### -}
 prelude :: Expr -> Expr
-prelude e = LetIn (mat "succ")   (Left succExpr)
-          $ LetIn (mat "plus")   (Left plusExpr)
-          $ LetIn (mat "plusR")  (Left plusRExpr)
-          $ LetIn (mat "neg")    (Left negExpr)
+prelude e = RecIn (mat "succ")   succExpr
+          $ RecIn (mat "plus")   plusExpr
+          $ RecIn (mat "plusR")  plusRExpr
+          $ RecIn (mat "neg")    negExpr
           $ LetIn (mat "id")     (Left $ Lambda (mat "x") (Term $ var "x"))
           $ e
 --

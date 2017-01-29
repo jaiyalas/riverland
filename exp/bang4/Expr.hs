@@ -9,7 +9,14 @@ data Val     = N Nat
              | B Bool
              | Pr Val Val
              | Closure Env Expr
-             deriving (Show, Eq)
+             deriving (Eq)
+--
+instance Show Val where
+    show (N n) = "N" ++ (show $ nat2int n)
+    show (B b) = show b
+    show (Pr v1 v2) = "("++(show v1)++","++(show v2)++")"
+    show (Closure (Env xs ys) (Lambda mt fbody)) =
+        "(C["++(show mt)++"]"++(show $ length xs)++"/"++(show $ length ys)++")"
 --
 data Term a  = Lit Val
              | Atom a
@@ -36,6 +43,7 @@ data Expr    = Term VTerm
              | Lambda MTerm Expr {-Atomic mt-}
              --
              | LetIn MTerm (Either Expr FApp) Expr
+             | RecIn MTerm Expr Expr -- LetRec
              | DupIn MTerm VTerm Expr
              | Pair Expr Expr
              --
