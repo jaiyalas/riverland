@@ -7,9 +7,17 @@ import Pat
 --
 rval :: (Val, Env) -> Expr -> Env
 --
-rval (v, env) (Term vt) = update Linear env (vmTrans vt) v
+rval (v, env) (Term vt) = insert Linear env (vmTrans vt) v
 --
-rval (v, env) (Lambda mt body) = env
+rval (Closure _ _, env) (Lambda mt body) = env
+--
+rval (v, env) (Pair e1 e2) =
+    let (v1, env1) = eval env e1
+        (v2, env2) = eval env e2
+    in (Pr v1 v2, env)
+
+-- -- -- -- -- -- -- --
+
 --
 rval (v, env) (LetIn (Atom (Mat fName)) (Left (Lambda localmt body)) e) =
     forceVarRM Normal (rval (v, env) e) (Var fName)
@@ -33,7 +41,7 @@ rval (v, env) (LetIn mt (Right (fname, vt)) e) =
 
 
 
-
+--
 rval (v, env) (Match vt []) = error $
     "<<rval | Case exhausted>>\n"++
     "\tNo pattern can be rev-matched"
