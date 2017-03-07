@@ -4,6 +4,8 @@ import Expr
 import Env
 import Func
 import Pat
+import Eval
+
 --
 rval :: (Val, Env) -> Expr -> Env
 --
@@ -11,7 +13,7 @@ rval (v, env) (Term vt) = insert Linear env (vmTrans vt) v
 --
 rval (Closure _ _, env) (Lambda mt body) = env
 --
-rval (v, env) (Pair e1 e2) =
+rval (Pr x1 x2, env) (Pair e1 e2) =
     let (v1, env1) = eval env e1
         (v2, env2) = eval env e2
     in (Pr v1 v2, env)
