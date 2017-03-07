@@ -25,7 +25,7 @@ eval env (RecIn mt localExp e) = case eval env localExp of
 eval env (LetIn mt (Left localExp) e) = case eval env localExp of
     (fun@(Closure _ _), env') -> eval (insert Normal env  mt fun) e
     (val              , env') -> eval (insert Linear env' mt val) e
--- 74.4 =(71.0)=> 03.4
+--
 eval env (LetIn mt (Right (fname, vt)) e) =
     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
         argVal = subs Linear env vt
