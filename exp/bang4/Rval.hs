@@ -38,14 +38,23 @@ rval (Pr v1 v2, env)  (Pair e1 e2) =
 --     in eval newEnv e
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 rval (v, env) (RecIn mt localExp e) = undefined
+--
 
--- rval (v, env) (LetIn (Atom (Mat fName)) (Left (Lambda localmt body)) e) =
---     forceVarRM Normal (rval (v, env) e) (Var fName)
--- --
--- rval (v, env) (LetIn mt (Left e') e) =
---     let midEnv = rval (v, env) e
---         (v', env') = subs Linear midEnv (mvTrans mt)
---     in rval (v', env') e'
+
+-- eval env (LetIn mt (Left localExp) e) = case eval env localExp of
+--     (fun@(Closure _ _), env') -> eval (insert Normal env  mt fun) e
+--     (val              , env') -> eval (insert Linear env' mt val) e
+
+-- well, there is a thing: should I REMOVE this stuff in env?
+rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
+    rval (v, env) nextExp
+rval (v, env) (LetIn mt (Left localExp) nextExp) =
+    let midEnv = rval (v, env) nextExp
+        v2 = subs Linear midEnv (mvTrans mt)
+    in rval (v2, midEnv) localExp
+
+
+
 -- -- application: 2 expr / 2 variable / 2 Lit
 -- rval (v, env) (LetIn mt (Right (fname, vt)) e) =
 --     let midEnv = rval (v, env) e

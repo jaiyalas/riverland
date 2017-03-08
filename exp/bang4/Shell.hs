@@ -7,7 +7,10 @@ import Pat
 import Eval
 
 run :: FunName -> Val -> Val -- (Val, Env)
-run fname args = fst $ eval mempty $ prelude $
+run fname args = fst $ run_ fname args
+
+run_ :: FunName -> Val -> (Val, Env)
+run_ fname args = eval mempty $ prelude $
     LetIn (mat "res") (Right (fname, Lit args)) (Term $ var "res")
 
 -- rval with non-empty env
