@@ -13,22 +13,36 @@ rval (v, env) (Term vt) = insert Linear env (vmTrans vt) v
 --
 rval (v, env) (Lambda mt body) = env
 --
-rval (Pr v1 v2, env)  (Pair e1 e2) =
+rval (Pr v1 v2, env) (Pair e1 e2) =
     let env1 = rval (v1, env) e1
         env2 = rval (v2, env) e2
     in env1 `mappend` env2
-
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- eval env (RecIn mt localExp e) = case eval env localExp of
 --     (fun@(Closure fenv fbody), env') ->
 --         let funR = Closure (insert Normal fenv mt funR) fbody
 --         in eval (insert Normal env mt funR) e
---     (val, env')               -> eval (insert Linear env' mt val) e
--- --
--- eval env (LetIn mt (Left localExp) e) = case eval env localExp of
---     (fun@(Closure _ _), env') -> eval (insert Normal env  mt fun) e
---     (val              , env') -> eval (insert Linear env' mt val) e
--- --
+--     (val, env')               -> error "..."
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+rval (v, env) (RecIn mt localExp nextExp) =
+    let midEnv = rval (v, env) nextExp
+    in undefined
+--
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
+    let midEnv = rval (v, env) nextExp
+    in neutralize Normal midEnv (mvTrans mt)
+rval (v, env) (LetIn mt (Left localExp) nextExp) =
+    let midEnv = rval (v, env) nextExp
+        (v2, finEnv) = popout Linear midEnv (mvTrans mt)
+    in rval (v2, finEnv) localExp
+-- -- application: 2 expr / 2 variable / 2 Lit
+rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
+    let newEnv = rval (v, env) nextExp
+        (res, argedEnv) = popout Linear newEnv (mvTrans mt)
+        --
+        (Closure fenv fbody, midEnv3) = popout Normal midEnv2 (var fname)
+    in undefined
 -- eval env (LetIn mt (Right (fname, vt)) e) =
 --     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
 --         argVal = subs Linear env vt
@@ -36,27 +50,7 @@ rval (Pr v1 v2, env)  (Pair e1 e2) =
 --         (res, _) = eval argedEnv fbody
 --         newEnv = insert Linear env mt res
 --     in eval newEnv e
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-rval (v, env) (RecIn mt localExp e) = undefined
---
 
-
--- eval env (LetIn mt (Left localExp) e) = case eval env localExp of
---     (fun@(Closure _ _), env') -> eval (insert Normal env  mt fun) e
---     (val              , env') -> eval (insert Linear env' mt val) e
-
--- well, there is a thing: should I REMOVE this stuff in env?
-rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
-    rval (v, env) nextExp
-rval (v, env) (LetIn mt (Left localExp) nextExp) =
-    let midEnv = rval (v, env) nextExp
-        v2 = subs Linear midEnv (mvTrans mt)
-    in rval (v2, midEnv) localExp
-
-
-
--- -- application: 2 expr / 2 variable / 2 Lit
--- rval (v, env) (LetIn mt (Right (fname, vt)) e) =
 --     let midEnv = rval (v, env) e
 --         (val, env') = subs Linear midEnv (mvTrans mt)
 --         (Closure fmt fbody, _) = subs Normal env (var fname)
@@ -67,12 +61,13 @@ rval (v, env) (LetIn mt (Left localExp) nextExp) =
 --     in insert Linear env' (vmTrans vt) vFunIn
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-rval (v, env) (DupIn (Prod mtl mtr) vt e) =
-    let midEnv = rval (v, env) e
-        lVal = subs Linear midEnv (mvTrans mtl)
-        rVal = subs Linear midEnv (mvTrans mtr)
+-- there is a catch: DupIn allows only non-function
+rval (v, env) (DupIn (Prod mtl mtr) vt nextExp) =
+    let midEnv = rval (v, env) nextExp
+        (lVal, midEnv2) = popout Linear midEnv (mvTrans mtl)
+        (rVal, midEnv3) = popout Linear midEnv2 (mvTrans mtr)
     in if lVal == rVal
-        then insert Linear midEnv (vmTrans vt) rVal
+        then insert Linear midEnv3 (vmTrans vt) rVal
         else error $
             "<<rval | Illegal values>>\n"++
             "\tReversing DupIn failed with: "++
@@ -81,19 +76,17 @@ rval (v, env) (DupIn (Prod mtl mtr) vt e) =
 rval (v, env) (Match vt []) = error $
     "<<rval | Case exhausted>>\n"++
     "\tNo pattern can be rev-matched"
-rval (v, env) (Match vt (mt :~> cexp : cases)) =
-    if oracle v cexp
-        then let midEnv = rval (v, env) cexp
-                 (patVal, finEnv) = subs Linear midEnv (mvTrans mt)
-             in insert Linear finEnv (vmTrans vt) patVal
-        else rval (v, env) (Match vt cases)
+rval (v, env) (Match vt (mt :~> cexp : cases)) = if oracle v cexp
+    then let midEnv = rval (v, env) cexp
+             (patVal, finEnv) = popout Linear midEnv (mvTrans mt)
+         in insert Linear finEnv (vmTrans vt) patVal
+    else rval (v, env) (Match vt cases)
 --
 rval (v, env) (MatEq vt case1 case2) =
     rval (v, env) (Match vt [case1,case2])
 rval _ _ = error $
     "<<rval | Unknown>>"
-
-
+--
 {-
 The `oracle` is an extension of `rMatch`.
 `oracle` allow to r-matching upon expr-level.
