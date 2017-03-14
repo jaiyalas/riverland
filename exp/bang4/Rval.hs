@@ -47,7 +47,7 @@ rval (v, env) (RecIn mt localExp e) = undefined
 
 -- well, there is a thing: should I REMOVE this stuff in env?
 rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
-    rval (v, env) nextExp
+    rval (v, neutralize Normal (mvTrans mt) env) nextExp
 rval (v, env) (LetIn mt (Left localExp) nextExp) =
     let midEnv = rval (v, env) nextExp
         v2 = subs Linear midEnv (mvTrans mt)

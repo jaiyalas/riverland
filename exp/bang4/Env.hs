@@ -29,6 +29,16 @@ subs ctxSW env (Prod vt1 vt2) =
 subs ctxSW env (NatS vt) =
     let (N nat) = subs ctxSW env vt in (N $ S nat)
 --
+neutralize :: CtxSwitch -> VTerm -> Env -> Env
+neutralize _ (Lit val) env = env
+neutralize Linear (Atom var) (Env lis nls) =
+    Env (filter ((/= var).fst) lis) nls
+neutralize Normal (Atom var) (Env lis nls) =
+    Env lis (filter ((/= var).fst) nls)
+neutralize ctxSW (Prod vt1 vt2) env =
+    neutralize ctxSW vt2 $ neutralize ctxSW vt1 $ env
+neutralize ctxSW (NatS vt) (Env lis nls) =
+    neutralize ctxSW vt (Env lis nls)
 -- matchable insertion
 insert :: CtxSwitch -> Env -> MTerm -> Val -> Env
 insert _ env (Lit _) _ = env -- value is unwritable
