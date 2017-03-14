@@ -13,6 +13,14 @@ run_ :: FunName -> Val -> (Val, Env)
 run_ fname args = eval mempty $ prelude $
     LetIn (mat "res") (Right (fname, Lit args)) (Term $ var "res")
 
+plus2 :: Val -> (Val, Env)
+plus2 args = eval mempty $ prelude $
+    LetIn (mat "res") (Right ("succ", Lit args)) $
+    LetIn (mat "res2") (Right ("succ", var "res")) $
+    Term $ var "res2"
+
+
+
 -- rval with non-empty env
 -- "plus" (3, Let y = 5 in x + y)
 

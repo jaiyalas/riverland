@@ -20,7 +20,10 @@ eval env (RecIn mt localExp e) = case eval env localExp of
     (fun@(Closure fenv fbody), env') ->
         let funR = Closure (insert Normal fenv mt funR) fbody
         in eval (insert Normal env mt funR) e
-    (val, env')               -> eval (insert Linear env' mt val) e
+    -- (val, env')               -> eval (insert Linear env' mt val) e
+    (val, env') -> error $
+        "<<eval | Illegal Function Definition>>\n"++
+        "\t"++(show val)++" is illegal for RecIn"
 --
 eval env (LetIn mt (Left localExp) e) = case eval env localExp of
     (fun@(Closure _ _), env') -> eval (insert Normal env  mt fun) e

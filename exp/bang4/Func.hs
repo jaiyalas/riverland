@@ -14,6 +14,7 @@ prelude e = RecIn (mat "succ")   succExpr
           $ LetIn (mat "id")     (Left $ Lambda (mat "x") (Term $ var "x"))
           $ e
 --
+
 succExpr :: Expr
 succExpr = Lambda (mat "#0") $
     Match (var "#0")
