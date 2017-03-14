@@ -17,21 +17,15 @@ rval (Pr v1 v2, env) (Pair e1 e2) =
     let env1 = rval (v1, env) e1
         env2 = rval (v2, env) e2
     in env1 `mappend` env2
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
--- eval env (RecIn mt localExp e) = case eval env localExp of
---     (fun@(Closure fenv fbody), env') ->
---         let funR = Closure (insert Normal fenv mt funR) fbody
---         in eval (insert Normal env mt funR) e
---     (val, env')               -> error "..."
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+--
 rval (v, env) (RecIn mt localExp nextExp) =
     let midEnv = rval (v, env) nextExp
-    in undefined
+    in neutralize Normal midEnv (mvTrans mt)
 --
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
     let midEnv = rval (v, env) nextExp
     in neutralize Normal midEnv (mvTrans mt)
+--
 rval (v, env) (LetIn mt (Left localExp) nextExp) =
     let midEnv = rval (v, env) nextExp
         (v2, finEnv) = popout Linear midEnv (mvTrans mt)
