@@ -30,12 +30,30 @@ rval (v, env) (LetIn mt (Left localExp) nextExp) =
     let midEnv = rval (v, env) nextExp
         (v2, finEnv) = popout Linear midEnv (mvTrans mt)
     in rval (v2, finEnv) localExp
+--
+
+
+
 -- -- application: 2 expr / 2 variable / 2 Lit
 rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
     let newEnv = rval (v, env) nextExp
-        (res, argedEnv) = popout Linear newEnv (mvTrans mt)
-        (Closure fenv fbody, midEnv3) = popout Normal argedEnv (var fname)
+        (res, resEnv) = popout Linear newEnv (mvTrans mt)
+
+
+        (Closure fenv fbody, midEnv3) = subs Normal argedEnv (var fname)
     in undefined
+
+
+
+
+-- eval env (LetIn mt (Right (fname, vt)) e) =
+--     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
+--         argVal = subs Linear env vt
+--         argedEnv = insert Linear fenv argMT argVal
+--         (res, resEnv) = eval argedEnv fbody
+--         newEnv = insert Linear resEnv mt res
+--     in eval newEnv e
+
 -- eval env (LetIn mt (Right (fname, vt)) e) =
 --     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
 --         argVal = subs Linear env vt
@@ -44,6 +62,11 @@ rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
 --         newEnv = insert Linear env mt res
 --     in eval newEnv e
 --
+
+
+
+
+
 -- there is a catch: DupIn allows only non-function
 rval (v, env) (DupIn (Prod mtl mtr) vt nextExp) =
     let midEnv = rval (v, env) nextExp
