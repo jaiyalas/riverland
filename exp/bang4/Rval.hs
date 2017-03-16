@@ -37,22 +37,11 @@ rval (v, env) (LetIn mt (Left localExp) nextExp) =
 -- -- application: 2 expr / 2 variable / 2 Lit
 rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
     let newEnv = rval (v, env) nextExp
-        (res, resEnv) = popout Linear newEnv (mvTrans mt)
-
-
-        (Closure fenv fbody, midEnv3) = subs Normal argedEnv (var fname)
+        (res, env') = popout Linear newEnv (mvTrans mt)
+        -- (Closure fenv fbody, midEnv3) = subs Normal argedEnv (var fname)
     in undefined
 
 
-
-
--- eval env (LetIn mt (Right (fname, vt)) e) =
---     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
---         argVal = subs Linear env vt
---         argedEnv = insert Linear fenv argMT argVal
---         (res, resEnv) = eval argedEnv fbody
---         newEnv = insert Linear resEnv mt res
---     in eval newEnv e
 
 -- eval env (LetIn mt (Right (fname, vt)) e) =
 --     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
@@ -61,9 +50,6 @@ rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
 --         (res, _) = eval argedEnv fbody
 --         newEnv = insert Linear env mt res
 --     in eval newEnv e
---
-
-
 
 
 
