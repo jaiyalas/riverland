@@ -22,10 +22,15 @@ rval (v, env) (RecIn mt localExp nextExp) =
     let midEnv = rval (v, env) nextExp
     in neutralize Normal midEnv (mvTrans mt)
 --
+
+-- in fact, this is incorrect
 rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
     let midEnv = rval (v, env) nextExp
     in neutralize Normal midEnv (mvTrans mt)
 --
+
+
+
 rval (v, env) (LetIn mt (Left localExp) nextExp) =
     let midEnv = rval (v, env) nextExp
         (v2, finEnv) = popout Linear midEnv (mvTrans mt)
@@ -36,15 +41,20 @@ rval (v, env) (LetIn mt (Left localExp) nextExp) =
 
 -- -- application: 2 expr / 2 variable / 2 Lit
 rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
-    let newEnv = rval (v, env) nextExp
-        (res, resEnv) = popout Linear newEnv (mvTrans mt)
+    let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
+        midEnv = rval (v, fenv) fbody
+        (v2, resEnv) = popout Linear midEnv (mvTrans argMT)
+        finEnv = insert Linear resEnv (vmTrans vt) v2
+    in finEnv
+{-
 
+reval (App (Var f) y) env v =
+    let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var f)
+        midEnv = reval fbody fenv v
+        (v',resEnv) = popout midEnv argMT
+    in insert resEnv (y,v')
 
-        (Closure fenv fbody, midEnv3) = subs Normal argedEnv (var fname)
-    in undefined
-
-
-
+-}
 
 -- eval env (LetIn mt (Right (fname, vt)) e) =
 --     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)

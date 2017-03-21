@@ -112,6 +112,7 @@ reval (App (Var f) y) env v =
     Fun env' x body -> reval (App (Lam x body) y) env' v
 reval (App (Lam x body) y) env v =
   mvEntry x y (reval body env v)
+  -- renaming x from env with y
 
 reval (Let x e1 e2) env v =
   let env' = reval e2 env v
