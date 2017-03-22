@@ -25,10 +25,9 @@ rval (v, env) (Term vt) = insert Linear env (vmTrans vt) v
 rval (v, env) (Lambda mt body) = env
 --
 rval (Pr v1 v2, env) (Pair e1 e2) =
-    undefined
-    -- let env1 = rval (v1, env) e1
-    --     env2 = rval (v2, env) e2
-    -- in env1 `mappend` env2
+    let env1 = rval (v1, env) e1
+        env2 = rval (v2, env) e2
+    in env1 `mappend` env2
 --
 rval (v, env) (RecIn mt localExp nextExp) =
     undefined
@@ -36,20 +35,33 @@ rval (v, env) (RecIn mt localExp nextExp) =
 --     in neutralize Normal midEnv (mvTrans mt)
 -- --
 
--- in fact, this is incorrect
+--
 rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
     undefined
 
 rval (v, env) (LetIn mt (Left localExp) nextExp) =
     undefined
 
--- -- application: 2 expr / 2 variable / 2 Lit
+--
 rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
-    undefined
+    let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
+        nextEnv = rval (v, env) nextExp
+        fout = subs Linear env (mvTrans mt)
+        localEnv = rval (fout, fenv) fbody
+        fin = subs Linear localEnv (mvTrans argMT)
+    in insert Linear nextEnv (vmTrans vt) fin
 
--- there is a catch: DupIn allows only non-function
+-- 
 rval (v, env) (DupIn (Prod mtl mtr) vt nextExp) =
-    undefined
+    let nextEnv = rval (v, env) nextExp
+        lVal = subs Linear nextEnv (mvTrans mtl)
+        rVal = subs Linear nextEnv (mvTrans mtr)
+    in if lVal == rVal
+        then insert Linear nextEnv (vmTrans vt) rVal
+        else error $
+            "<<rval | Illegal values>>\n"++
+            "\tReversing DupIn failed with: "++
+            "\t\t("++(show lVal)++"=/="++(show rVal)++")"
 
 --
 rval (v, env) (Match vt []) = error $
@@ -75,6 +87,7 @@ oracle (Pr vl vr) (DupIn mt vt expr)
     | vl == vr = rMatch (Pr vl vr) (dss expr)
     | otherwise = False
 oracle v expr = rMatch v (dss expr)
+
 -- reversed matching
 rMatch :: Val -> VTerm -> Bool
 rMatch (Closure _ _) _ = False
