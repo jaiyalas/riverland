@@ -7,6 +7,17 @@ import Pat
 import Eval
 
 --
+{-
+`eval :: Env -> Expr -> (Val, Env)`
+
+The returned `Env` is just a convenient result.
+Ideally `eval` function should return `Val` only.
+
+Correspondingly `rval` should have type as `Val -> Expr -> Env`.
+Howere it will be much easier to compute by having a working environment.
+Notice that this input `env` is not the very same environment that returned by `eval`.
+-}
+--
 rval :: (Val, Env) -> Expr -> Env
 --
 rval (v, env) (Term vt) = insert Linear env (vmTrans vt) v
@@ -14,78 +25,32 @@ rval (v, env) (Term vt) = insert Linear env (vmTrans vt) v
 rval (v, env) (Lambda mt body) = env
 --
 rval (Pr v1 v2, env) (Pair e1 e2) =
-    let env1 = rval (v1, env) e1
-        env2 = rval (v2, env) e2
-    in env1 `mappend` env2
+    undefined
+    -- let env1 = rval (v1, env) e1
+    --     env2 = rval (v2, env) e2
+    -- in env1 `mappend` env2
 --
 rval (v, env) (RecIn mt localExp nextExp) =
-    let midEnv = rval (v, env) nextExp
-    in neutralize Normal midEnv (mvTrans mt)
---
+    undefined
+--     let midEnv = rval (v, env) nextExp
+--     in neutralize Normal midEnv (mvTrans mt)
+-- --
 
 -- in fact, this is incorrect
 rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
-    let midEnv = rval (v, env) nextExp
-    in neutralize Normal midEnv (mvTrans mt)
---
-
-
+    undefined
 
 rval (v, env) (LetIn mt (Left localExp) nextExp) =
-    let midEnv = rval (v, env) nextExp
-        (v2, finEnv) = popout Linear midEnv (mvTrans mt)
-    in rval (v2, finEnv) localExp
---
-
-
-
+    undefined
 
 -- -- application: 2 expr / 2 variable / 2 Lit
 rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
-    let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
-        midEnv = rval (v, fenv) fbody
-        (v2, resEnv) = popout Linear midEnv (mvTrans argMT)
-        finEnv = insert Linear resEnv (vmTrans vt) v2
-    in finEnv
-{-
-
-reval (App (Var f) y) env v =
-    let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var f)
-        midEnv = reval fbody fenv v
-        (v',resEnv) = popout midEnv argMT
-    in insert resEnv (y,v')
-
--}
-
--- eval env (LetIn mt (Right (fname, vt)) e) =
---     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
---         argVal = subs Linear env vt
---         argedEnv = insert Linear fenv argMT argVal
---         (res, resEnv) = eval argedEnv fbody
---         newEnv = insert Linear resEnv mt res
---     in eval newEnv e
---
--- eval env (LetIn mt (Right (fname, vt)) e) =
---     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
---         argVal = subs Linear env vt
---         argedEnv = insert Linear fenv argMT argVal
---         (res, _) = eval argedEnv fbody
---         newEnv = insert Linear env mt res
---     in eval newEnv e
-
-
+    undefined
 
 -- there is a catch: DupIn allows only non-function
 rval (v, env) (DupIn (Prod mtl mtr) vt nextExp) =
-    let midEnv = rval (v, env) nextExp
-        (lVal, midEnv2) = popout Linear midEnv (mvTrans mtl)
-        (rVal, midEnv3) = popout Linear midEnv2 (mvTrans mtr)
-    in if lVal == rVal
-        then insert Linear midEnv3 (vmTrans vt) rVal
-        else error $
-            "<<rval | Illegal values>>\n"++
-            "\tReversing DupIn failed with: "++
-            "\t\t("++(show lVal)++"=/="++(show rVal)++")"
+    undefined
+
 --
 rval (v, env) (Match vt []) = error $
     "<<rval | Case exhausted>>\n"++

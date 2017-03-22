@@ -33,10 +33,8 @@ eval env (LetIn mt (Right (fname, vt)) e) =
     let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
         argVal = subs Linear env vt
         argedEnv = insert Linear fenv argMT argVal
-        -- (res, _) = eval argedEnv fbody
-        -- newEnv = insert Linear env mt res
-        (res, resEnv) = eval argedEnv fbody
-        newEnv = insert Linear resEnv mt res
+        (res, _) = eval argedEnv fbody
+        newEnv = insert Linear env mt res
     in eval newEnv e
 eval env (DupIn (Prod (Atom (Mat ma1)) (Atom (Mat ma2))) (Atom va) e) =
         let val = subs Linear env (Atom va)
