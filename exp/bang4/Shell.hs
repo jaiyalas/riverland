@@ -5,6 +5,7 @@ import Env
 import Func
 import Pat
 import Eval
+import Rval2
 
 run :: FunName -> Val -> Val -- (Val, Env)
 run fname args = fst $ run_ fname args
@@ -18,6 +19,15 @@ plus2 args = eval mempty $ prelude $
     LetIn (mat "res") (Right ("succ", Lit args)) $
     LetIn (mat "res2") (Right ("succ", var "res")) $
     Term $ var "res2"
+
+rrun_ :: FunName -> Val -> Env
+rrun_ fname arg = rval (arg, mempty) $
+    prelude $
+    LetIn (mat "res") (Right (fname, var "input")) $
+    Term $ var "res"
+
+rrun :: FunName -> Val -> Val
+rrun fname arg = subs Linear (rrun_ fname arg) (var "input")
 
 
 

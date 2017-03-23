@@ -1,4 +1,4 @@
-module Rval where
+module Rval2 where
 --
 import Expr
 import Env
@@ -29,29 +29,31 @@ rval (Pr v1 v2, env) (Pair e1 e2) =
         env2 = rval (v2, env) e2
     in env1 `mappend` env2
 --
-rval (v, env) (RecIn mt localExp nextExp) =
-    undefined
---     let midEnv = rval (v, env) nextExp
---     in neutralize Normal midEnv (mvTrans mt)
--- --
-
+rval (v, env) (RecIn mt localExp nextExp) = case localExp of
+    (Lambda fpara fbody) ->
+        let funR = Closure (insert Normal env mt funR) (Lambda fpara fbody)
+            newEnv = insert Normal env mt funR
+        in rval (v, newEnv) nextExp
+    _ -> rval (v, env) (LetIn mt (Left localExp) nextExp)
 --
 rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
-    undefined
-
+    let newEnv = insert Normal env mt $
+                    Closure env (Lambda fpara fbody)
+    in rval (v, newEnv) nextExp
+--
 rval (v, env) (LetIn mt (Left localExp) nextExp) =
-    undefined
-
+    let nextEnv = rval (v, env) nextExp
+        v2 = subs Linear env (mvTrans mt)
+    in rval (v2, nextEnv) localExp
 --
 rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
-    let fun@(Closure fenv (Lambda argMT fbody)) = subs Normal env (var fname)
+    let (Closure fenv (Lambda fmt fbody)) = subs Normal env (var fname)
         nextEnv = rval (v, env) nextExp
-        fout = subs Linear env (mvTrans mt)
+        fout = subs Linear nextEnv (mvTrans mt)
         localEnv = rval (fout, fenv) fbody
-        fin = subs Linear localEnv (mvTrans argMT)
+        fin = subs Linear localEnv (mvTrans fmt)
     in insert Linear nextEnv (vmTrans vt) fin
-
--- 
+--
 rval (v, env) (DupIn (Prod mtl mtr) vt nextExp) =
     let nextEnv = rval (v, env) nextExp
         lVal = subs Linear nextEnv (mvTrans mtl)
