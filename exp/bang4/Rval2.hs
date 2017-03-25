@@ -6,6 +6,8 @@ import Func
 import Pat
 import Eval
 
+import Debug.Trace (traceShow)
+
 --
 {-
 `eval :: Env -> Expr -> (Val, Env)`
@@ -43,7 +45,7 @@ rval (v, env) (LetIn mt (Left (Lambda fpara fbody)) nextExp) =
 --
 rval (v, env) (LetIn mt (Left localExp) nextExp) =
     let nextEnv = rval (v, env) nextExp
-        v2 = subs Linear env (mvTrans mt)
+        v2 = subs Linear nextEnv (mvTrans mt)
     in rval (v2, nextEnv) localExp
 --
 rval (v, env) (LetIn mt (Right (fname, vt)) nextExp) =
@@ -72,7 +74,13 @@ rval (v, env) (Match vt []) = error $
 rval (v, env) (Match vt (mt :~> cexp : cases)) = if oracle v cexp
     then let midEnv = rval (v, env) cexp
              (patVal, finEnv) = popout Linear midEnv (mvTrans mt)
-         in insert Linear finEnv (vmTrans vt) patVal
+             finEnv2 = insert Linear finEnv (vmTrans vt) patVal
+         in
+             traceShow mt $
+             traceShow (getLCtx finEnv2) $
+             traceShow "--------"
+             finEnv2
+
     else rval (v, env) (Match vt cases)
 --
 rval (v, env) (MatEq vt case1 case2) =
