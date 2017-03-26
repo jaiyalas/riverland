@@ -1,4 +1,8 @@
 module Expr where
+
+import Data.Maybe (isJust)
+import Data.List (find)
+
 --
 type FName   = String
 type FunName = String
@@ -51,7 +55,8 @@ data Expr    = Term VTerm
              | MatEq VTerm Case Case
              deriving (Show, Eq)
 --
-type Ctx = [(Var, Val)]
+--
+type Ctx = [(Var,Val)]
 --
 data Env = Env Ctx Ctx deriving (Show, Eq)
 --
@@ -92,6 +97,11 @@ consL :: (Var, Val) -> Env -> Env
 consL vv (Env lis nls) = (Env (vv : lis) nls)
 consN :: (Var, Val) -> Env  -> Env
 consN vv (Env lis nls) = (Env lis (vv : nls))
+--
+existVarL :: Env -> Var -> Bool
+existVarL = flip (\v -> (isJust . find ((== v).fst) . getLCtx))
+existVarN :: Env -> Var -> Bool
+existVarN = flip (\v -> (isJust . find ((== v).fst) . getNCtx))
 --
 -- ##### ##### ##### ##### ##### ##### ##### ##### #####
 --
