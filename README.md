@@ -25,8 +25,8 @@ Flowing as river; solid as land.
 + [x] re-write/check Func
 + [x] re-write/check Pat
 + [x] re-write/check Eval
-+ [ ] re-write/check Rval
-+ [ ] re-write/check Shell
++ [x] re-write/check Rval
++ [x] re-write/check Shell
 + [ ] `NatS`
     + [ ] get rid off it
     + [ ] add `NatZ` or something
