@@ -71,20 +71,31 @@ rval (v, env) (DupIn (Prod mtl mtr) vt nextExp) =
 rval (v, env) (Match vt []) = error $
     "<<rval | Case exhausted>>\n"++
     "\tNo pattern can be rev-matched"
-rval (v, env) (Match vt (mt :~> cexp : cases)) = if oracle v cexp
-    then let midEnv = rval (v, env) cexp
-             (patVal, finEnv) = popout Linear midEnv (mvTrans mt)
-             finEnv2 = insert Linear finEnv (vmTrans vt) patVal
-         in
-             traceShow mt $
-             traceShow (getLCtx finEnv2) $
-             traceShow "--------"
-             finEnv2
-
-    else rval (v, env) (Match vt cases)
+rval (v, env) (Match vt (mt :~> cexp : cases))
+    | oracle v cexp =
+        let midEnv = rval (v, env) cexp
+            patVal = subs Linear midEnv (mvTrans mt)
+            finEnv = insert Linear midEnv (vmTrans vt) patVal
+        in
+            --  traceShow mt $
+            --  traceShow "> " $
+            --  traceShow (getLCtx finEnv) $
+             finEnv
+    | otherwise = rval (v, env) (Match vt cases)
 --
-rval (v, env) (MatEq vt case1 case2) =
-    rval (v, env) (Match vt [case1,case2])
+rval (v, env) (MatEq vt (mt1 :~> cexp1) (mt2 :~> cexp2))
+    | oracle v cexp1 =
+        let midEnv = rval (v, env) cexp1
+            patVal = subs Linear midEnv (mvTrans mt1)
+        in insert Linear midEnv (vmTrans vt) (Pr patVal patVal)
+    | oracle v cexp2 = -- as normal r-matching
+        let midEnv = rval (v, env) cexp2
+            patVal = subs Linear midEnv (mvTrans mt2)
+        in insert Linear midEnv (vmTrans vt) patVal
+    | otherwise = error $
+        "<<rval | Case exhausted>>\n"++
+        "\tNo pattern can be found in MatEq"
+    -- rval (v, env) (Match vt [case1,case2])
 rval _ _ = error $
     "<<rval | Unknown>>"
 --
@@ -96,7 +107,9 @@ oracle :: Val -> Expr -> Bool
 oracle (Pr vl vr) (DupIn mt vt expr)
     | vl == vr = rMatch (Pr vl vr) (dss expr)
     | otherwise = False
-oracle v expr = rMatch v (dss expr)
+oracle v expr = -- rMatch v (dss expr)
+    let x = traceShow v $ traceShow (dss expr) $ 1
+    in x `seq` (\ a -> rMatch v (dss expr)) x
 
 -- reversed matching
 rMatch :: Val -> VTerm -> Bool
