@@ -28,6 +28,7 @@ subs ctxSW env (Prod vt1 vt2) =
     Pr (subs ctxSW env vt1) (subs ctxSW env vt2)
 subs ctxSW env (NatS vt) =
     let (N nat) = subs ctxSW env vt in (N $ S nat)
+subs ctxSW env (NatZ) = N Z
 --
 -- matchable insertion
 insert :: CtxSwitch -> Env -> MTerm -> Val -> Env
@@ -39,7 +40,7 @@ insert Normal (Env ls ns) (Atom (Mat name)) val =
 insert ctxSW env (Prod mt1 mt2) (Pr v1 v2) =
     insert ctxSW (insert ctxSW env mt1 v1) mt2 v2
 insert ctxSW env (NatS mt) (N (S nat)) = insert ctxSW env mt (N nat)
---
+-- NatZ included
 insert ctxSW env mt v = error $
     "<< insert | Unknown >>\n"++
     "\tCannot insert \"" ++ (show mt) ++ "/" ++ (show v) ++
@@ -47,7 +48,6 @@ insert ctxSW env mt v = error $
 --
 -- neutralize variable from env
 neutralize :: CtxSwitch -> Env -> VTerm -> Env
-neutralize _ env (Lit _) = env
 neutralize Linear (Env lis nls) (Atom va) =
     Env (filter ((/= va) . fst) lis) nls
 neutralize Normal (Env lis nls) (Atom va) =
@@ -56,6 +56,8 @@ neutralize ctxSW env (Prod vt1 vt2) =
     neutralize ctxSW (neutralize ctxSW env vt1) vt2
 neutralize ctxSW env (NatS vt) =
     neutralize ctxSW env vt
+-- NatZ and Lit included
+neutralize _ env _ = env
 --
 -- pop out variable
 popout :: CtxSwitch -> Env -> VTerm -> (Val, Env)

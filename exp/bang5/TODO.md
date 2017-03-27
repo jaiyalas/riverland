@@ -5,3 +5,4 @@
 + [ ] 增加 type terms
 + [ ] 換掉 NatS / NatZ by new meta-constructor(?)
 + [ ] FApp = (FunName, VTerm) 改成 FunName -> VTerm
++ [ ] DupIn {MTerm VTerm Expr} 改成 DupIn {MTerm Expr Expr}
