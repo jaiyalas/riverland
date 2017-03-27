@@ -130,3 +130,4 @@ instance Functor Term where
     fmap f (Atom a) = Atom (f a)
     fmap f (Prod t1 t2) = Prod (fmap f t1) (fmap f t2)
     fmap f (NatS t) = NatS (fmap f t)
+    fmap f (NatZ)   = NatZ
