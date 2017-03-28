@@ -1,4 +1,4 @@
-module Types where
+module Typpes where
 --
 import Expr
 import Env
@@ -59,13 +59,19 @@ import Env
 -- ===================================
 -- none
 
-data Ty = TyNat
-        | TyBool
-        | TyProd Ty Ty
-        | TyFunc Ty Ty
-        -- | TySum Ty Ty
-        deriving (Show, Ew)
+-- data Val     = N Nat
+--              | B Bool
+--              | Pr Val Val
+--              | Closure Env Expr
+--              deriving (Eq)
 
-data Typing = 
+data Typ = TypNat
+         | TypBool
+         | TypProd Typ Typ
+         | TypFunc Typ Typ
+         -- | TypSum Typ Typ
+         deriving (Show, Ew)
 
+typing :: Env -> Expr -> Maybe Typ
+typing = undefined
 --
