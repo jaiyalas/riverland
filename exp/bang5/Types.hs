@@ -4,20 +4,11 @@ import Expr
 import Env
 --
 
-data Ty = TyNat
-        | TyBool
-        | TyProd Ty Ty
-        | TyFunc Ty Ty
-        -- | TySum Ty Ty
-        deriving (Show, Ew)
-
 -- LetIn MTerm Expr Expr
 -- DupIn MTerm VTerm Expr
 -- --
 -- Match VTerm [Case]
 -- MatEq VTerm Case Case
-
-
 
 -- num : ∀ {n} → ℕ → Expr n
 -- fv  : ∀ {n} → (x : FName) → Expr n
@@ -68,6 +59,13 @@ data Ty = TyNat
 -- ===================================
 -- none
 
+data Ty = TyNat
+        | TyBool
+        | TyProd Ty Ty
+        | TyFunc Ty Ty
+        -- | TySum Ty Ty
+        deriving (Show, Ew)
 
+data Typing = 
 
 --

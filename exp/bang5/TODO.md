@@ -1,6 +1,6 @@
 + [X] 合併 LetIn / RecIn
 + [X] 新增 Application (from LetIn)
-+ [ ] 補完 expr: coproduct 
++ [ ] 補完 expr: sum
 + [ ] 增加 type terms
 + [ ] Env/Ctx 重新設計製作
 + [ ] 換掉 NatS / NatZ by new meta-constructor(?)
