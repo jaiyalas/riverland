@@ -1,5 +1,7 @@
 module Expr where
 --
+import Types
+--
 import Data.Maybe (isJust)
 import Data.List (find)
 --
@@ -11,7 +13,7 @@ data Nat = Z | S Nat deriving (Eq)
 data Val     = N Nat
              | B Bool
              | Pr Val Val
-             | Closure Env Expr
+             | Closure (Env (Val, Typ)) Expr
              deriving (Eq)
 --
 data Term a = Lit Val
@@ -46,11 +48,11 @@ data Expr    = Term VTerm
 --
 -- ##### ##### ##### ##### ##### ##### ##### ##### #####
 --
-type Ctx = [(Var,Val)]
+type Ctx a = [(Var,a)]
 --
-data Env = Env Ctx Ctx deriving (Show, Eq)
+data Env a = Env (Ctx a) (Ctx a) deriving (Show, Eq)
 --
-instance Monoid Env where
+instance Monoid (Env a) where
     mempty = Env [] []
     mappend (Env xs ys) (Env xs2 ys2) =
         Env (xs +>+ xs2) (ys +>+ ys2)
@@ -69,26 +71,26 @@ data CtxSwitch = Normal | Linear deriving (Show, Eq)
     | otherwise = (k,v) : xs +<+ ys
 [] +<+ ys = ys
 --
-getLCtx :: Env -> Ctx
+getLCtx :: Env a -> Ctx a
 getLCtx (Env x _) = x
-getNCtx :: Env -> Ctx
+getNCtx :: Env a -> Ctx a
 getNCtx (Env _ y) = y
 --
-headL :: Env -> Maybe (Var, Val)
+headL :: Env a -> Maybe (Var, a)
 headL (Env (x : xs) _) = Just x
 headL (Env [] _) = Nothing
-headN :: Env -> Maybe (Var, Val)
+headN :: Env a -> Maybe (Var, a)
 headN (Env _ (y : ys)) = Just y
 headN (Env _ []) = Nothing
 --
-consL :: (Var, Val) -> Env -> Env
+consL :: (Var, a) -> Env a -> Env a
 consL vv (Env lis nls) = (Env (vv : lis) nls)
-consN :: (Var, Val) -> Env  -> Env
+consN :: (Var, a) -> Env a -> Env a
 consN vv (Env lis nls) = (Env lis (vv : nls))
 --
-existVarL :: Env -> Var -> Bool
+existVarL :: Env a -> Var -> Bool
 existVarL = flip (\v -> (isJust . find ((== v).fst) . getLCtx))
-existVarN :: Env -> Var -> Bool
+existVarN :: Env a -> Var -> Bool
 existVarN = flip (\v -> (isJust . find ((== v).fst) . getNCtx))
 --
 int2nat :: Int -> Nat

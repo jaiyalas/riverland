@@ -6,7 +6,7 @@ import Env
 import Data.Maybe (fromMaybe)
 --
 -- matching a new env and its (next) togo expr
-matching :: Val -> [Case] -> (Env, Expr)
+matching :: Val -> [Case] -> (Env a, Expr)
 matching v (Atom ma :~> e : _) = (insert Linear mempty (Atom ma) v, e)
 matching (Pr v1 v2) (Prod mt1 mt2 :~> e : _) =
     let env1 = insert Linear mempty mt1 v1

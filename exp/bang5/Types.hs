@@ -1,9 +1,12 @@
-module Typpes where
+module Types where
 --
-import Expr
-import Env
---
-
+data Typ = TypNat
+         | TypBool
+         | TypProd Typ Typ
+         | TypFunc Typ Typ
+         -- | TypSum Typ Typ
+         deriving (Show, Eq)
+--          
 -- LetIn MTerm Expr Expr
 -- DupIn MTerm VTerm Expr
 -- --
@@ -64,14 +67,4 @@ import Env
 --              | Pr Val Val
 --              | Closure Env Expr
 --              deriving (Eq)
-
-data Typ = TypNat
-         | TypBool
-         | TypProd Typ Typ
-         | TypFunc Typ Typ
-         -- | TypSum Typ Typ
-         deriving (Show, Ew)
-
-typing :: Env -> Expr -> Maybe Typ
-typing = undefined
 --
