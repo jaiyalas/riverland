@@ -1,11 +1,12 @@
 module Eval (eval) where
 --
 import Expr
-import Env
+import Ctx
+import CtxOp
 import Func
 import Match
 --
-eval :: Env -> Expr -> (Val, Env)
+eval :: Ctx Var Val -> Expr -> (Val, Ctx Var Val)
 --
 -- Term VTerm
 eval env (Term vt) = (subs Linear env vt, env)

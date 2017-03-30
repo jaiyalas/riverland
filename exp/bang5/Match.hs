@@ -1,12 +1,13 @@
 module Match where
 --
 import Expr
-import Env
+import Ctx
+import CtxOp
 --
 import Data.Maybe (fromMaybe)
 --
 -- matching a new env and its (next) togo expr
-matching :: Val -> [Case] -> (Env a, Expr)
+matching :: Val -> [Case] -> (Ctx Var Val, Expr)
 matching v (Atom ma :~> e : _) = (insert Linear mempty (Atom ma) v, e)
 matching (Pr v1 v2) (Prod mt1 mt2 :~> e : _) =
     let env1 = insert Linear mempty mt1 v1
@@ -36,7 +37,7 @@ matching val [] = error $
     "\tNon-exhaustive patterns for: " ++ show val
 --
 -- locally matching over Nat
-locallyNatMatching :: Val -> Case -> Maybe (Env, Expr)
+locallyNatMatching :: Val -> Case -> Maybe (Ctx Var Val, Expr)
 locallyNatMatching vNat (Atom (Mat ma) :~> e)
     = Just ((Var ma, vNat) `consL` mempty, e)
 locallyNatMatching (N n) (Lit (N m) :~> e)

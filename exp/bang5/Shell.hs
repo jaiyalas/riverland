@@ -1,7 +1,8 @@
 module Shell where
 --
 import Expr
-import Env
+import Ctx
+import CtxOp
 import Func
 import Match
 import Eval
@@ -12,7 +13,7 @@ intv = N . int2nat
 prv :: (Int,Int) -> Val
 prv (i,j) = Pr (intv i) (intv j)
 -- --
-run_ :: FunName -> Val -> (Val, Env)
+run_ :: FunName -> Val -> (Val, Ctx Var Val)
 run_ fname args = eval mempty $ prelude $
     AppIn (mat "res")
         (fname, Lit args)
@@ -21,7 +22,7 @@ run_ fname args = eval mempty $ prelude $
 run :: FunName -> Val -> Val
 run fn = fst . (run_ fn)
 -- --
-rrun_ :: FunName -> Val -> Env
+rrun_ :: FunName -> Val -> Ctx Var Val
 rrun_ fname arg = rval mempty arg $
     prelude $
     AppIn (mat "res") (fname, var "input") $

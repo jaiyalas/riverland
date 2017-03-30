@@ -1,13 +1,12 @@
 module Expr where
 --
 import Types
-import Env
+import Ctx
 --
 import Data.Maybe (isJust)
 import Data.List (find)
 import Control.Monad.Reader
 --
-type Context = Ctx Var (Val,Typ)
 --
 type FName   = String
 type FunName = String
@@ -17,7 +16,7 @@ data Nat = Z | S Nat deriving (Eq)
 data Val     = N Nat
              | B Bool
              | Pr Val Val
-             | Closure Context Expr
+             | Closure (Ctx Var Val) Expr
              deriving (Eq)
 --
 data Term a = Lit Val

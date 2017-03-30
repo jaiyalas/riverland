@@ -1,7 +1,6 @@
 module Func where
 --
 import Expr
-import Env
 --
 {- ###################################
         Predefined functions

@@ -1,11 +1,12 @@
 module Rval where
 --
 import Expr
-import Env
+import Ctx
+import CtxOp
 import Func
 import Match
 --
-rval :: Env -> Val -> Expr -> Env
+rval :: Ctx Var Val -> Val -> Expr -> Ctx Var Val
 -- Term VTerm
 rval env v (Term vt) =
     insert Linear env (vmTrans vt) v
@@ -128,9 +129,9 @@ dss (MatEq _ _ _) = error $
 -- --
 
 -- find val by vt; and, create val by mt
-vmGen :: Env -> VTerm -> MTerm -> Env
+vmGen :: Ctx Var Val -> VTerm -> MTerm -> Ctx Var Val
 vmGen = \ env vt mt -> vmGenWith env vt mt id
-vmGenWith :: Env -> VTerm -> MTerm -> (Val -> Val) -> Env
+vmGenWith :: Ctx Var Val -> VTerm -> MTerm -> (Val -> Val) -> Ctx Var Val
 vmGenWith nev vt mt f =
     insert Linear nev mt $
     f $ subs Linear nev vt

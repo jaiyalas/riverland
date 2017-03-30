@@ -1,18 +1,11 @@
-module CtxOp (subs, insert, neutralize, popout) where
+module CtxOp where
 --
-import Typ
-import Env
+import Types
+import Ctx
 import Expr
 --
-
-
--- Reader Context
-
-
-
---
 -- variable substitution
-subs :: CtxSwitch -> Context -> VTerm -> (Val, Typ)
+subs :: CtxSwitch -> Ctx Var Val -> VTerm -> Val
 subs _ env (Lit val) = val
 subs ctxSW env (Atom va) = lookupCtx ctxSW env va
 subs ctxSW env (Prod vt1 vt2) =
@@ -23,12 +16,12 @@ subs ctxSW env (NatZ) = N Z
 --
 
 -- matchable insertion
-insert :: CtxSwitch -> Context -> MTerm -> Val -> Context
+insert :: CtxSwitch -> Ctx Var Val -> MTerm -> Val -> Ctx Var Val
 insert _ env (Lit _) _ = env -- value is unwritable
-insert Linear (Env ls ns) (Atom (Mat name)) val =
-    Env (((Var name, val) :) $ filter ((/= Var name).fst) ls) ns
-insert Normal (Env ls ns) (Atom (Mat name)) val =
-    Env ls (((Var name, val) :) $ filter ((/= Var name).fst) ns)
+insert Linear (Ctx ls ns) (Atom (Mat name)) val =
+    Ctx (((Var name, val) :) $ filter ((/= Var name).fst) ls) ns
+insert Normal (Ctx ls ns) (Atom (Mat name)) val =
+    Ctx ls (((Var name, val) :) $ filter ((/= Var name).fst) ns)
 insert ctxSW env (Prod mt1 mt2) (Pr v1 v2) =
     insert ctxSW (insert ctxSW env mt1 v1) mt2 v2
 insert ctxSW env (NatS mt) (N (S nat)) = insert ctxSW env mt (N nat)
@@ -38,21 +31,21 @@ insert ctxSW env mt v = error $
     "\tCannot insert \"" ++ (show mt) ++ "/" ++ (show v) ++
     "\" in "++(show ctxSW)++" context."
 --
--- neutralize variable from env
-neutralize :: CtxSwitch -> Context -> VTerm -> Context
-neutralize Linear (Env lis nls) (Atom va) =
-    Env (filter ((/= va) . fst) lis) nls
-neutralize Normal (Env lis nls) (Atom va) =
-    Env lis (filter ((/= va) . fst) nls)
-neutralize ctxSW env (Prod vt1 vt2) =
-    neutralize ctxSW (neutralize ctxSW env vt1) vt2
-neutralize ctxSW env (NatS vt) =
-    neutralize ctxSW env vt
--- NatZ and Lit included
-neutralize _ env _ = env
---
--- pop out variable
-popout :: CtxSwitch -> Context -> VTerm -> (Val, Context)
-popout ctxSW env vt =
-    ( subs ctxSW env vt
-    , neutralize ctxSW env vt)
+-- -- neutralize variable from env
+-- neutralize :: CtxSwitch -> Ctx a b -> VTerm -> Ctx a b
+-- neutralize Linear (Ctx lis nls) (Atom va) =
+--     Ctx (filter ((/= va) . fst) lis) nls
+-- neutralize Normal (Ctx lis nls) (Atom va) =
+--     Ctx lis (filter ((/= va) . fst) nls)
+-- neutralize ctxSW env (Prod vt1 vt2) =
+--     neutralize ctxSW (neutralize ctxSW env vt1) vt2
+-- neutralize ctxSW env (NatS vt) =
+--     neutralize ctxSW env vt
+-- -- NatZ and Lit included
+-- neutralize _ env _ = env
+-- --
+-- -- pop out variable
+-- popout :: CtxSwitch -> Ctx a b -> VTerm -> (b, Ctx a b)
+-- popout ctxSW env vt =
+--     ( subs ctxSW env vt
+--     , neutralize ctxSW env vt)
