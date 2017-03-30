@@ -6,7 +6,7 @@ data Typ = TypNat
          | TypFunc Typ Typ
          -- | TypSum Typ Typ
          deriving (Show, Eq)
---          
+--
 -- LetIn MTerm Expr Expr
 -- DupIn MTerm VTerm Expr
 -- --

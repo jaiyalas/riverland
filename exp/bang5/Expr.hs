@@ -1,9 +1,13 @@
 module Expr where
 --
 import Types
+import Env
 --
 import Data.Maybe (isJust)
 import Data.List (find)
+import Control.Monad.Reader
+--
+type Context = Ctx Var (Val,Typ)
 --
 type FName   = String
 type FunName = String
@@ -13,14 +17,13 @@ data Nat = Z | S Nat deriving (Eq)
 data Val     = N Nat
              | B Bool
              | Pr Val Val
-             | Closure (Env (Val, Typ)) Expr
+             | Closure Context Expr
              deriving (Eq)
 --
 data Term a = Lit Val
             | Atom a
             | Prod (Term a) (Term a)
-            -- only Nat has this privilege
-            -- this is.. so wrong
+            --
             | NatS (Term a)
             | NatZ
             deriving (Show, Eq)
@@ -47,51 +50,6 @@ data Expr    = Term VTerm
              deriving (Show, Eq)
 --
 -- ##### ##### ##### ##### ##### ##### ##### ##### #####
---
-type Ctx a = [(Var,a)]
---
-data Env a = Env (Ctx a) (Ctx a) deriving (Show, Eq)
---
-instance Monoid (Env a) where
-    mempty = Env [] []
-    mappend (Env xs ys) (Env xs2 ys2) =
-        Env (xs +>+ xs2) (ys +>+ ys2)
---
-data CtxSwitch = Normal | Linear deriving (Show, Eq)
-
-(+>+) :: Eq a => [(a,b)] -> [(a,b)] -> [(a,b)]
-((k,v):xs) +>+ ys
-    | elem k (map fst ys) = (k,v) : xs +>+ (filter ((/= k).fst) ys)
-    | otherwise = (k,v) : xs +>+ ys
-[] +>+ ys = ys
-
-(+<+) :: Eq a => [(a,b)] -> [(a,b)] -> [(a,b)]
-((k,v):xs) +<+ ys
-    | elem k (map fst ys) = xs +<+ ys
-    | otherwise = (k,v) : xs +<+ ys
-[] +<+ ys = ys
---
-getLCtx :: Env a -> Ctx a
-getLCtx (Env x _) = x
-getNCtx :: Env a -> Ctx a
-getNCtx (Env _ y) = y
---
-headL :: Env a -> Maybe (Var, a)
-headL (Env (x : xs) _) = Just x
-headL (Env [] _) = Nothing
-headN :: Env a -> Maybe (Var, a)
-headN (Env _ (y : ys)) = Just y
-headN (Env _ []) = Nothing
---
-consL :: (Var, a) -> Env a -> Env a
-consL vv (Env lis nls) = (Env (vv : lis) nls)
-consN :: (Var, a) -> Env a -> Env a
-consN vv (Env lis nls) = (Env lis (vv : nls))
---
-existVarL :: Env a -> Var -> Bool
-existVarL = flip (\v -> (isJust . find ((== v).fst) . getLCtx))
-existVarN :: Env a -> Var -> Bool
-existVarN = flip (\v -> (isJust . find ((== v).fst) . getNCtx))
 --
 int2nat :: Int -> Nat
 int2nat 0 = Z
@@ -124,7 +82,7 @@ instance Show Val where
     show (N n) = "N" ++ (show $ nat2int n)
     show (B b) = show b
     show (Pr v1 v2) = "("++(show v1)++","++(show v2)++")"
-    show (Closure (Env xs ys) (Lambda mt fbody)) =
+    show (Closure (Ctx xs ys) (Lambda mt fbody)) =
         "(C["++(show mt)++"]"++(show $ length xs)++"/"++(show $ length ys)++")"
 --
 instance Functor Term where
