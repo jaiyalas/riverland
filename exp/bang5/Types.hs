@@ -6,6 +6,12 @@ data Typ = TypNat
          | TypFunc Typ Typ
          -- | TypSum Typ Typ
          deriving (Show, Eq)
+
+class Product a where
+    times :: a -> a -> a
+instance Product Typ where
+    times = TypProd
+
 --
 -- LetIn MTerm Expr Expr
 -- DupIn MTerm VTerm Expr

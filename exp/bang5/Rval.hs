@@ -1,15 +1,16 @@
 module Rval where
 --
+import Types
 import Expr
 import Ctx
 import CtxOp
 import Func
 import Match
 --
-rval :: Ctx Var Val -> Val -> Expr -> Ctx Var Val
+rval :: Ctx Var (Val,Typ) -> Val -> Expr -> Ctx Var (Val,Typ)
 -- Term VTerm
 rval env v (Term vt) =
-    insert Linear env (vmTrans vt) v
+    insertVal Linear env (vmTrans vt) v
 -- Pair Expr Expr
 rval env (Pr v1 v2) (Pair e1 e2) =
     let env1 = rval env v1 e1
@@ -23,15 +24,15 @@ rval env v (Lambda fmt fbody) = env
 -- --
 -- AppIn MTerm FApp Expr
 rval env v (AppIn mt (fname, vt) next) =
-    let (Closure fenv (Lambda fmt fbody)) = subs Normal env (var fname)
+    let (Closure fenv (Lambda fmt fbody)) = subsVal Normal env (var fname)
     in vmGenWith (rval env v next) (mvTrans mt) (vmTrans vt)
         (\fout ->
-            subs Linear (rval fenv fout fbody) (mvTrans fmt))
+            subsVal Linear (rval fenv fout fbody) (mvTrans fmt))
     --     nextEnv = rval env v next
-    --     fout = subs Linear nextEnv (mvTrans mt)
+    --     fout = subsVal Linear nextEnv (mvTrans mt)
     --     localEnv = rval (fout, fenv) fbody
-    --     fin = subs Linear localEnv (mvTrans fmt)
-    -- in insert Linear nextEnv (vmTrans vt) fin
+    --     fin = subsVal Linear localEnv (mvTrans fmt)
+    -- in insertVal Linear nextEnv (vmTrans vt) fin
 -- --
 -- LetIn MTerm Expr Expr
 -- !!! NOTICE !
@@ -40,22 +41,22 @@ rval env v (AppIn mt (fname, vt) next) =
 -- !!! but not in eval
 rval env v (LetIn mt localExpr next) = case localExpr of
     fun@(Lambda fmt fbody) ->
-        let funR = Closure (insert Normal env mt funR) fun
-        in rval (insert Normal env mt funR) v next
+        let funR = Closure (insertVal Normal env mt funR) fun
+        in rval (insertVal Normal env mt funR) v next
     otherwise ->
         let nextEnv = rval env v next
-            v2 = subs Linear nextEnv (mvTrans mt)
+            v2 = subsVal Linear nextEnv (mvTrans mt)
         in rval nextEnv v2 localExpr
 -- DupIn MTerm VTerm Expr
 rval env v (DupIn (Prod mtl mtr) vt next)
-    | lv == rv = insert Linear nextEnv (vmTrans vt) rv
+    | lv == rv = insertVal Linear nextEnv (vmTrans vt) rv
     | otherwise = error $
             "<< rval | illegal values (DupIn) >>\n"++
             "\tReversing DupIn failed with: "++
             "\t\t("++(show lv)++"=/="++(show rv)++")"
         where nextEnv = rval env v next
-              lv = subs Linear nextEnv (mvTrans mtl)
-              rv = subs Linear nextEnv (mvTrans mtr)
+              lv = subsVal Linear nextEnv (mvTrans mtl)
+              rv = subsVal Linear nextEnv (mvTrans mtr)
 rval env v (DupIn mt vt next) = error $
     "<< rval | illegal syntax (DupIn) >>\n" ++
     "\t"++(show mt)++"is not a product"
@@ -129,9 +130,9 @@ dss (MatEq _ _ _) = error $
 -- --
 
 -- find val by vt; and, create val by mt
-vmGen :: Ctx Var Val -> VTerm -> MTerm -> Ctx Var Val
+vmGen :: Ctx Var (Val,Typ) -> VTerm -> MTerm -> Ctx Var (Val,Typ)
 vmGen = \ env vt mt -> vmGenWith env vt mt id
-vmGenWith :: Ctx Var Val -> VTerm -> MTerm -> (Val -> Val) -> Ctx Var Val
+--
+vmGenWith :: Ctx Var (Val,Typ) -> VTerm -> MTerm -> (Val -> Val) -> Ctx Var (Val,Typ)
 vmGenWith nev vt mt f =
-    insert Linear nev mt $
-    f $ subs Linear nev vt
+    insertVal Linear nev mt $ f $ subsVal Linear nev vt

@@ -16,7 +16,7 @@ data Nat = Z | S Nat deriving (Eq)
 data Val     = N Nat
              | B Bool
              | Pr Val Val
-             | Closure (Ctx Var Val) Expr
+             | Closure (Ctx Var (Val, Typ)) Expr
              deriving (Eq)
 --
 data Term a = Lit Val
@@ -73,6 +73,15 @@ vmTrans :: VTerm -> MTerm
 vmTrans = fmap (\(Var x) -> Mat x)
 --
 -- ##### ##### ##### ##### ##### ##### ##### ##### #####
+--
+instance Product Val where
+    times = Pr
+instance Product (Term a) where
+    times = Prod
+instance Product Expr where
+    times = Pair
+instance (Product a, Product b) => Product (a, b) where
+    times (v1, t1) (v2, t2) = (v1 `times` v2, t1 `times` t2)
 --
 instance Show Nat where
     show n = "n" ++ show (nat2int n)

@@ -1,5 +1,6 @@
 module Match where
 --
+import Types
 import Expr
 import Ctx
 import CtxOp
@@ -7,11 +8,11 @@ import CtxOp
 import Data.Maybe (fromMaybe)
 --
 -- matching a new env and its (next) togo expr
-matching :: Val -> [Case] -> (Ctx Var Val, Expr)
-matching v (Atom ma :~> e : _) = (insert Linear mempty (Atom ma) v, e)
+matching :: Val -> [Case] -> (Ctx Var (Val,Typ), Expr)
+matching v (Atom ma :~> e : _) = (insertVal Linear mempty (Atom ma) v, e)
 matching (Pr v1 v2) (Prod mt1 mt2 :~> e : _) =
-    let env1 = insert Linear mempty mt1 v1
-        env2 = insert Linear env1   mt2 v2
+    let env1 = insertVal Linear mempty mt1 v1
+        env2 = insertVal Linear env1   mt2 v2
     in (env2, e)
 matching (N nat) (Lit (N n) :~> e : cs)
     | nat == n = (mempty, e)
@@ -37,9 +38,9 @@ matching val [] = error $
     "\tNon-exhaustive patterns for: " ++ show val
 --
 -- locally matching over Nat
-locallyNatMatching :: Val -> Case -> Maybe (Ctx Var Val, Expr)
+locallyNatMatching :: Val -> Case -> Maybe (Ctx Var (Val,Typ), Expr)
 locallyNatMatching vNat (Atom (Mat ma) :~> e)
-    = Just ((Var ma, vNat) `consL` mempty, e)
+    = Just ((Var ma, (vNat, TypNat)) `consL` mempty, e)
 locallyNatMatching (N n) (Lit (N m) :~> e)
     = if n == m then Just (mempty, e) else Nothing
 locallyNatMatching (N (S nat)) (NatS mt :~> e)
