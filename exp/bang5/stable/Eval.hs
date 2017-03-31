@@ -30,7 +30,7 @@ eval env (LetIn mt localExpr next) =
         (fun@(Closure fenv fbody), _) ->
             let funR = Closure (insert Normal fenv mt funR) fbody
             in eval (insert Normal env mt funR) next
-        (val, env') -> eval (insert Linear env' mt val) next
+        (val, _) -> eval (insert Linear env mt val) next
 -- DupIn MTerm VTerm Expr
 eval env (DupIn mt vt next) = case mt of
     (Prod (Atom (Mat ma1)) (Atom (Mat ma2))) ->

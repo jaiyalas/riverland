@@ -40,6 +40,7 @@ insert Normal (Env ls ns) (Atom (Mat name)) val =
 insert ctxSW env (Prod mt1 mt2) (Pr v1 v2) =
     insert ctxSW (insert ctxSW env mt1 v1) mt2 v2
 insert ctxSW env (NatS mt) (N (S nat)) = insert ctxSW env mt (N nat)
+insert ctxSW env NatZ _ = env
 -- NatZ included
 insert ctxSW env mt v = error $
     "<< insert | Unknown >>\n"++

@@ -20,11 +20,11 @@ rval env v (Pair e1 e2) = error $
     "<< rval | illegal syntax (Pair) >>\n" ++
     "\t"++(show v)++" doesn't match to "++(show (Pair e1 e2))
 -- Lambda MTerm Expr
-rval env v (Lambda fmt fbody) = env
+rval env v (Lambda fmt ty fbody) = env
 -- --
 -- AppIn MTerm FApp Expr
 rval env v (AppIn mt (fname, vt) next) =
-    let (Closure fenv (Lambda fmt fbody)) = subsVal Normal env (var fname)
+    let (Closure fenv (Lambda fmt ty fbody)) = subsVal Normal env (var fname)
     in vmGenWith (rval env v next) (mvTrans mt) (vmTrans vt)
         (\fout ->
             subsVal Linear (rval fenv fout fbody) (mvTrans fmt))
@@ -40,7 +40,7 @@ rval env v (AppIn mt (fname, vt) next) =
 -- !!! in here, it's expected to be Lambda as head
 -- !!! but not in eval
 rval env v (LetIn mt localExpr next) = case localExpr of
-    fun@(Lambda fmt fbody) ->
+    fun@(Lambda fmt ty fbody) ->
         let funR = Closure (insertVal Normal env mt funR) fun
         in rval (insertVal Normal env mt funR) v next
     otherwise ->
@@ -121,6 +121,9 @@ dss (Pair e1 e2) = Prod (dss e1) (dss e2)
 dss (LetIn _ _ expr) = dss expr
 dss (AppIn _ _ expr) = dss expr
 dss (DupIn _ _ expr) = dss expr
+dss (Lambda _ _ _) = error $
+    "<<dss | Illegal syntax>>\n"++
+    "\t\"Lambda\" cannot be DSS-fied"
 dss (Match _ _) = error $
     "<<dss | Illegal syntax>>\n"++
     "\t\"Match\" cannot be DSS-fied"

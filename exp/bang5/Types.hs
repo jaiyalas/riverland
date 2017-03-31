@@ -1,6 +1,7 @@
 module Types where
 --
-data Typ = TypNat
+data Typ = TypAny -- ???
+         | TypNat
          | TypBool
          | TypProd Typ Typ
          | TypFunc Typ Typ

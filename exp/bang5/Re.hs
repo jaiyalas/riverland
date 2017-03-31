@@ -1,7 +1,3 @@
--- {-# LANGUAGE ExistentialQuantification #-}
--- {-# LANGUAGE RankNTypes #-}
--- {-# LANGUAGE StandaloneDeriving #-}
--- {-# LANGUAGE FlexibleInstances #-}
 module Re where
 --
 import Data.List

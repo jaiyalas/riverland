@@ -1,6 +1,7 @@
 module Func where
 --
 import Expr
+import Types
 --
 {- ###################################
         Predefined functions
@@ -10,12 +11,12 @@ prelude e = LetIn (mat "succ")   succExpr
           $ LetIn (mat "plus")   plusExpr
           $ LetIn (mat "plusR")  plusRExpr
           $ LetIn (mat "neg")    negExpr
-          $ LetIn (mat "id")     (Lambda (mat "x") (Term $ var "x"))
+        --   $ LetIn (mat "id")     (Lambda (mat "x") TypAny (Term $ var "x"))
           $ e
 --
 
 succExpr :: Expr
-succExpr = Lambda (mat "#0") $
+succExpr = Lambda (mat "#0") TypNat $
     Match (var "#0")
         [ -- (Lit $ N Z)  :~>
           (NatZ)  :~>
@@ -25,7 +26,7 @@ succExpr = Lambda (mat "#0") $
                 (Term $ NatS $ var "u2")
         ]
 plusExpr :: Expr
-plusExpr = Lambda (mat "#0") $
+plusExpr = Lambda (mat "#0") (TypProd TypNat TypNat) $
     LetIn (Prod (mat "_x") (mat "_y")) (Term $ var "#0") $
     Match (var "_y")
         [ -- (Lit (N Z))  :~>
@@ -38,7 +39,7 @@ plusExpr = Lambda (mat "#0") $
                 (Term $ Prod (var "x2") (NatS $ var "u2"))
         ]
 plusRExpr :: Expr
-plusRExpr = Lambda (mat "#0") $
+plusRExpr = Lambda (mat "#0") (TypProd TypNat TypNat) $
     MatEq (var "#0")
         ((mat "x")  :~> (Term $ Prod (var "x") (Lit $ N Z)))
         ((Prod (mat "x") (NatS (mat "u"))) :~>
@@ -46,7 +47,7 @@ plusRExpr = Lambda (mat "#0") $
                 ("plusR", Prod (var "x") (var "u"))
                 (Term $ Prod (var "x2") (NatS $ var "u2"))))
 negExpr :: Expr
-negExpr = Lambda (mat "#0") $
+negExpr = Lambda (mat "#0") TypBool $
     Match (var "#0")
         [ (Lit (B True))  :~>
             (Term $ Lit $ B False)

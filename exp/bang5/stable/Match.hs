@@ -27,10 +27,10 @@ matching (B b) (Lit (B b') :~> e : cs)
     | b == b' = (mempty, e)
     | otherwise = matching (B b) cs
 -- error and skip
+matching val (_ : cs) = matching val cs
 matching (Closure _ _) _ = error $
     "<< matching | Illegal value >>\n"++
     "\tFunction cannot be matched"
-matching val (_ : cs) = matching val cs
 matching val [] = error $
     "<< matching | Cases exhausted >>\n"++
     "\tNon-exhaustive patterns for: " ++ show val

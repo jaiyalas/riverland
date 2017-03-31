@@ -7,3 +7,9 @@
 + [ ] FApp = (FunName, VTerm) 改成 FunName -> VTerm
 + [ ] DupIn {MTerm VTerm Expr} 改成 DupIn {MTerm Expr Expr}
 + [ ] 拿掉 MatEq
++ [ ] ctx split or used label
+
+##
+
++ [ ] branching
++ [ ] Higher-order function

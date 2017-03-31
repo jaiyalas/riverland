@@ -8,7 +8,7 @@ typeOf :: Val -> Typ
 typeOf (N _) = TypNat
 typeOf (B _) = TypNat
 typeOf (Pr v1 v2) = TypProd (typeOf v1) (typeOf v2)
-typeOf (Closure ctx (Lambda mt e)) = TypFunc undefined undefined
+typeOf (Closure ctx (Lambda mt ty e)) = TypFunc ty undefined
 
 -- variable substitution
 subs :: CtxSwitch -> Ctx Var (Val, Typ) -> VTerm -> (Val, Typ)
@@ -21,8 +21,31 @@ subs ctxSW env (NatS vt) =
     in (N $ S nat, t)
 subs ctxSW env (NatZ) = (N Z, TypNat)
 
+subsT :: CtxSwitch -> Ctx Var Typ -> VTerm -> Typ
+subsT _ env (Lit val) = typeOf val
+subsT ctxSW env (Atom va) = lookupCtx ctxSW env va
+subsT ctxSW env (Prod vt1 vt2) =
+    (subsT ctxSW env vt1) `times` (subsT ctxSW env vt2)
+subsT ctxSW env (NatS vt) = case subsT ctxSW env vt of
+    TypNat -> TypNat
+    _ -> error "type error"
+subsT ctxSW env (NatZ) = TypNat
+
+
+
+
 subsVal cs ctx vt = fst $ subs cs ctx vt
 subsTyp cs ctx vt = snd $ subs cs ctx vt
+
+
+-- mt2val :: (MTerm, Val) -> Maybe Var
+-- mt2val = vt2val . mvTrans
+-- vt2val :: (VTerm, Val) -> Maybe Var
+-- vt2val (Atom var, _) = Just var
+-- vt2val (Prod t1 t2, Pr v1 v2) = Just $
+--     ...
+-- vt2val (NatS t1) = ...
+-- vt2val _ = Nothing
 
 -- matchable insertion
 insert :: CtxSwitch -> Ctx Var (Val, Typ) -> MTerm -> (Val, Typ) -> Ctx Var (Val, Typ)

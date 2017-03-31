@@ -19,7 +19,7 @@ data Val     = N Nat
              | Closure (Ctx Var (Val, Typ)) Expr
              deriving (Eq)
 --
-data Term a = Lit Val
+data Term a = Lit Val 
             | Atom a
             | Prod (Term a) (Term a)
             --
@@ -38,7 +38,7 @@ data Case    = (:~>) MTerm Expr deriving (Show, Eq)
 --
 data Expr    = Term VTerm
              | Pair Expr Expr
-             | Lambda MTerm Expr
+             | Lambda MTerm Typ Expr
              --
              | AppIn MTerm FApp Expr
              | LetIn MTerm Expr Expr
@@ -90,8 +90,8 @@ instance Show Val where
     show (N n) = "N" ++ (show $ nat2int n)
     show (B b) = show b
     show (Pr v1 v2) = "("++(show v1)++","++(show v2)++")"
-    show (Closure (Ctx xs ys) (Lambda mt fbody)) =
-        "(C["++(show mt)++"]"++(show $ length xs)++"/"++(show $ length ys)++")"
+    show (Closure (Ctx xs ys) (Lambda mt ty fbody)) =
+        "(C["++(show (mt,ty))++"]"++(show $ length xs)++"/"++(show $ length ys)++")"
 --
 instance Functor Term where
     fmap f (Lit v) = (Lit v)

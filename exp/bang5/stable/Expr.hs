@@ -15,7 +15,7 @@ data Val     = N Nat
              deriving (Eq)
 --
 data Term a = Lit Val
-            | Atom a
+            | Atom a -- variable
             | Prod (Term a) (Term a)
             -- only Nat has this privilege
             -- this is.. so wrong
@@ -25,8 +25,8 @@ data Term a = Lit Val
 --
 newtype Mat     = Mat FName deriving (Show, Eq)
 newtype Var     = Var FName deriving (Show, Eq)
-type    MTerm   = Term Mat
-type    VTerm   = Term Var
+type    MTerm   = Term Mat -- MTerm adding "variables" into ctx/env
+type    VTerm   = Term Var -- VTerm substutable variable
 --
 type FApp    = (FunName, VTerm)
 --

@@ -17,11 +17,11 @@ eval env (Pair e1 e2) =
         (v2, env2) = eval env e2
     in (Pr v1 v2, env1 `mappend` env2)
 -- Lambda MTerm Expr
-eval env fun@(Lambda _ _) = (Closure env fun, env)
+eval env fun@(Lambda _ _ _) = (Closure env fun, env)
 -- --
 -- AppIn MTerm FApp Expr
 eval env (AppIn mt (fname, vt) next) =
-    let fun@(Closure fenv (Lambda fmt fbody)) = subsVal Normal env (var fname)
+    let fun@(Closure fenv (Lambda fmt ty fbody)) = subsVal Normal env (var fname)
         argv = subsVal Linear env vt
         (resv, _) = eval (insertVal Linear fenv fmt argv) fbody
         nextEnv = insertVal Linear env mt resv

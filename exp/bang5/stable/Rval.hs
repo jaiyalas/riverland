@@ -18,7 +18,7 @@ rval env v (Pair e1 e2) = error $
     "<< rval | illegal syntax (Pair) >>\n" ++
     "\t"++(show v)++" doesn't match to "++(show (Pair e1 e2))
 -- Lambda MTerm Expr
-rval env v (Lambda fmt fbody) = env
+rval env v (Lambda _ _) = env -- ???
 -- --
 -- AppIn MTerm FApp Expr
 rval env v (AppIn mt (fname, vt) next) =

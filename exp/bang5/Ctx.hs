@@ -65,3 +65,8 @@ lookupCtx Normal (Ctx _ []) v1 = error $
     "<< raccess | Environment exhausted >>\n"++
     "\tCannot find (" ++ (show v1) ++ ") in normal context."
 --
+insertCtx :: Eq a => ((c,b) -> a) -> CtxSwitch -> (c,b) -> Ctx a b -> Ctx a b
+insertCtx f Linear x@(c,b) (Ctx ls ns) =
+    Ctx (((f x, b) :) $ filter ((/= (f x)).fst) ls) ns
+insertCtx f Normal x@(c,b) (Ctx ls ns) =
+    Ctx ls (((f x, b) :) $ filter ((/= (f x)).fst) ns)
