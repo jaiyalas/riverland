@@ -1,17 +1,23 @@
 module Types where
 --
-data Typ = TypAny -- ???
-         | TypNat
-         | TypBool
+data Typ = TypNat
          | TypProd Typ Typ
+        --  | TypSum Typ Typ
          | TypFunc Typ Typ
-         -- | TypSum Typ Typ
+         | TypAny
          deriving (Show, Eq)
 
 class Product a where
     times :: a -> a -> a
+    piL :: a -> Maybe a
+    piR :: a -> Maybe a
+
 instance Product Typ where
     times = TypProd
+    piL (TypProd tl _) = Just tl
+    piL _ = Nothing
+    piR (TypProd _ tr) = Just tr
+    piR _ = Nothing
 
 --
 -- LetIn MTerm Expr Expr
