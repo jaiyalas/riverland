@@ -10,7 +10,7 @@ prelude :: Expr -> Expr
 prelude e = LetIn (mat "succ")   succExpr
           $ LetIn (mat "plus")   plusExpr
           $ LetIn (mat "plusR")  plusRExpr
-          $ LetIn (mat "neg")    negExpr
+        --   $ LetIn (mat "neg")    negExpr
         --   $ LetIn (mat "id")     (Lambda (mat "x") TypAny (Term $ var "x"))
           $ e
 --
@@ -46,12 +46,12 @@ plusRExpr = Lambda (mat "#0") (TypProd TypNat TypNat) $
             (AppIn (Prod (mat "x2") (mat "u2"))
                 ("plusR", Prod (var "x") (var "u"))
                 (Term $ Prod (var "x2") (NatS $ var "u2"))))
-negExpr :: Expr
-negExpr = Lambda (mat "#0") TypBool $
-    Match (var "#0")
-        [ (Lit (B True))  :~>
-            (Term $ Lit $ B False)
-        , (Lit (B False)) :~>
-            (Term $ Lit $ B True)
-        ]
+-- negExpr :: Expr
+-- negExpr = Lambda (mat "#0") TypBool $
+--     Match (var "#0")
+--         [ (Lit (B True))  :~>
+--             (Term $ Lit $ B False)
+--         , (Lit (B False)) :~>
+--             (Term $ Lit $ B True)
+--         ]
 --

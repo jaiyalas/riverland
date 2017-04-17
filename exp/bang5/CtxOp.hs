@@ -19,7 +19,7 @@ instance FromVal Typ where
     fromVal (Pr v1 v2) = (fromVal v1) `times` (fromVal v2)
     fromVal _ = error "oops"
 
--- 是擅長 +1 的朋友呢
+-- 是擅長 +1/-1 的朋友呢
 class Natable a where
     succUni :: a -> a
     predUni :: a -> a
@@ -46,30 +46,30 @@ instance Natable (Term a) where
 
 -- variable substitution
 subs :: (Product a, FromVal a, Natable a)
-     => CtxSwitch -> Ctx Var a -> VTerm -> a
-subs _ ctx (Lit val) = fromVal val
-subs ctxSW ctx (Atom va) = lookupCtx ctxSW ctx va
-subs ctxSW ctx (Prod vt1 vt2) =
-    (subs ctxSW ctx vt1) `times` (subs ctxSW ctx vt2)
-subs ctxSW ctx (NatS vt) = succUni $ subs ctxSW ctx vt
-subs ctxSW ctx (NatZ) = fromVal (N Z)
+     => CtxSwitch -> VTerm -> Ctx Var a -> a 
+subs _ (Lit val) ctx = fromVal val
+subs ctxSW (Atom va) ctx = lookupCtx ctxSW ctx va
+subs ctxSW (Prod vt1 vt2) ctx =
+    (subs ctxSW vt1 ctx) `times` (subs ctxSW vt2 ctx)
+subs ctxSW (NatS vt) ctx = succUni $ subs ctxSW vt ctx
+subs ctxSW (NatZ) ctx = fromVal (N Z)
 --
 --
 -- matchable insertion
 insert :: (Show a, Eq a, Product a, Natable a)
-       => CtxSwitch -> Ctx Var a -> MTerm -> a -> Ctx Var a
-insert _ env (Lit _) _ = env
-insert ctxSW ctx mt@(Atom (Mat name)) a =
+       => CtxSwitch -> MTerm -> a -> Ctx Var a -> Ctx Var a
+insert _ (Lit _) _ ctx = ctx
+insert ctxSW mt@(Atom (Mat name)) a ctx =
     insertCtx (\_ -> Var name) ctxSW (mt, a) ctx
-insert ctxSW ctx (Prod mt1 mt2) a =
+insert ctxSW (Prod mt1 mt2) a ctx =
     case (piL a, piR a) of
         (Just v1, Just v2) ->
-            insert ctxSW (insert ctxSW ctx mt1 v1) mt2 v2
+            insert ctxSW mt2 v2 $ insert ctxSW mt1 v1 ctx
         _ -> error $ "<< insert | Prod >>\n"++
             (show a) ++ "is not a Product"
-insert ctxSW ctx (NatS mt) a = insert ctxSW ctx mt (predUni a)
+insert ctxSW (NatS mt) a ctx = insert ctxSW mt (predUni a) ctx
 -- NatZ included
-insert ctxSW env mt a = error $
+insert ctxSW mt a ctx = error $
     "<< insert | Unknown >>\n"++
     "\tCannot insert \"" ++ (show mt) ++ "/" ++ (show a) ++
     "\" in "++(show ctxSW)++" context."

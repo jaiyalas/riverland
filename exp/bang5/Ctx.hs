@@ -5,7 +5,7 @@
 -- --
 module Ctx where
 --
-import Data.Bifunctor
+-- import Data.Bifunctor
 -- import Data.Functor.Classes (Show2(..), Eq2(..))
 --
 -- instance {-# OVERLAPPABLE #-} (Show a, Show b, Show2 p) => Show (p a b) where

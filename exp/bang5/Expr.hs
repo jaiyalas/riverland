@@ -15,7 +15,7 @@ data Nat = Z | S Nat deriving (Eq)
 data Val     = N Nat
             --  | B Bool
              | Pr Val Val
-             | Closure (Ctx Var (Val, Typ)) Expr
+             | Closure (Ctx Var Val) Expr
              deriving (Eq)
 --
 data Term a = Lit Val
@@ -36,7 +36,14 @@ type FApp    = (FunName, VTerm)
 data Case    = (:~>) MTerm Expr deriving (Show, Eq)
 --
 data Expr    = Term VTerm
-             | Pair Expr Expr
+
+
+let x = (expr, expr) in ...
+
+let x = Lambda ... in
+AppIn y = ...
+
+            --  | Pair Expr Expr
              | Lambda MTerm Typ Expr
              --
              | AppIn MTerm FApp Expr
