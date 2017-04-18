@@ -14,6 +14,7 @@
         + label for indexing type (ant thus can be expended further)
 + [ ] type checking with ctx split and check
 + [ ] LetIn and RecIn again - avoid type inference of recursion
++ [ ] add Except Monad
 
 ## minor
 
