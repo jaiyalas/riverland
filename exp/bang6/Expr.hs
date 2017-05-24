@@ -17,7 +17,7 @@ data Val     = N Nat
 --
 type FApp    = (FunName, VTerm)
 --
-data Case    = (:~>) MTerm Expr deriving (Show, Eq)
+data Case    = (:~>) Expr Expr deriving (Show, Eq)
 --
 type MTerm = Expr
 type VTerm = Expr

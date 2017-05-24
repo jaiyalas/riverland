@@ -46,7 +46,7 @@ instance Natable (Term a) where
 
 -- variable substitution
 subs :: (Product a, FromVal a, Natable a)
-     => CtxSwitch -> VTerm -> Ctx Var a -> a 
+     => CtxSwitch -> VTerm -> Ctx Var a -> a
 subs _ (Lit val) ctx = fromVal val
 subs ctxSW (Atom va) ctx = lookupCtx ctxSW ctx va
 subs ctxSW (Prod vt1 vt2) ctx =

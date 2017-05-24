@@ -22,7 +22,9 @@ data Ctx a b = Ctx { getLEnv :: (Env a b)
 --
 data CtxSwitch = Normal | Linear deriving (Show, Eq)
 --
-data CtxError a = CtxExhausted {srcSwichEnv :: CtxSwitch, inKey :: a}
+data CtxError a =
+    CtxExhausted { srcSwichEnv :: CtxSwitch
+                 , inKey :: a}
 instance (Show a) => Show (CtxError a) where
     show ceh = "[Environment "++(show $ srcSwichEnv ceh)++" exhausted]: key "++
                 (show $ inKey ceh)++

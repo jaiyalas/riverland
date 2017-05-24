@@ -12,7 +12,7 @@ matching :: Val -> [Case] -> (Ctx Var Val, Expr)
 matching v (Atom ma :~> e : _) = (insert Linear (Atom ma) v mempty, e)
 matching (Pr v1 v2) (Prod mt1 mt2 :~> e : _) =
     let env1 = insert Linear mt1 v1 mempty
-        env2 = insert Linear mt2 v2 env1 
+        env2 = insert Linear mt2 v2 env1
     in (env2, e)
 matching (N nat) (Lit (N n) :~> e : cs)
     | nat == n = (mempty, e)
