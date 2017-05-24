@@ -3,6 +3,7 @@ module Match where
 import Types
 import Expr
 import Ctx
+import Error
 --
 import Data.Maybe (fromMaybe)
 import Control.Monad.Except
@@ -17,30 +18,28 @@ import Control.Monad.Except
 --              | Closure (Ctx VName Val) Expr
 --
 
-matching :: Val -> Expr -> Except MatError (Ctx VName Val)
+matching :: Val -> Expr -> Except ErrorMsg (Ctx VName Val)
 matching v (Var vname) =
     return (insertCtx fst L (vname, v) mempty)
 matching (N n1) (Lit (N n2)) = if n1 == n2
         then return mempty
-        else throwError Mismatch
+        else throwError $ MismatchPatt $ Simple (N n1) (Lit (N n2))
 matching (N (S n1)) (Suc e) = matching (N n1) e
 matching (B b1) (Lit (B b2)) = if b1 == b2
     then return mempty
-    else throwError Mismatch
+    else throwError $ MismatchPatt $ Simple (B b1) (Lit (B b2))
 matching (Pr v1 v2) (Pair e1 e2) = do
     env1 <- matching v1 e1
     env2 <- matching v2 e2
     return $ env1 `mappend` env2
-matching (Closure _ _) _ = throwError MatClosure
-matching _ _ = throwError IllMatch
+matching (Closure _ _) _ = throwError $ MismatchPatt $ Closure
+matching v e = throwError $ MismatchPatt $ Illegal v e
 
 
 
-
-
-
-matchings :: Val -> [Case] -> Except MatError (Ctx VName Val, Expr)
+matchings :: Val -> [Case] -> Except ErrorMsg (Ctx VName Val, Expr)
 matchings v (mat :~> next : cs) =
+    matching v mat >>= (\ctx -> (ctx, next))
 
 
 

@@ -15,7 +15,7 @@ instance Show TypError where
         "["++ nt ++"]: "++(show it)++" does not match "++(show ot)
 --
 data MatchError
-    = Illegal Expr Expr
+    = Illegal Val Expr
     | Closure
-    | Simple Expr Expr
+    | Simple Val Expr
     deriving (Show, Eq)
