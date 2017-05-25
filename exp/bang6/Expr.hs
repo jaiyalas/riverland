@@ -27,12 +27,11 @@ data Expr = Var VName
         --   | Ctr CtrName Expr
           | Suc Expr
           | Pair Expr Expr
+          | Lam MTerm Typ Expr
           --
-          | LamIn MTerm Typ Expr
-          | RecIn MTerm Typ Expr Typ
-          --
-          | AppIn MTerm FApp Expr
           | LetIn MTerm Expr Expr
+          | RecIn MTerm Expr Expr
+          | AppIn MTerm FApp Expr
           | BanIn MTerm Expr Expr
           | DupIn MTerm Expr Expr
           --
