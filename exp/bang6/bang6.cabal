@@ -1,0 +1,25 @@
+name:                bang6
+version:             0.1.0.0
+license:             BSD3
+author:              jaiyalas
+maintainer:          jaiyalas@gmail.com
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      ./
+  exposed-modules:
+    Types
+    Ctx
+    Error
+    Expr
+    -- Eval
+    -- Rval
+    -- Func
+    -- Shell
+    -- Typing
+  default-language:    Haskell2010
+  build-depends: base >=4.9 && <4.10
+               , mtl >=2.2 && <2.3
+  -- hs-source-dirs:
+  default-language:    Haskell2010

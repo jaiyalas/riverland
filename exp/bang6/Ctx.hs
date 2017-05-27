@@ -43,8 +43,18 @@ lookupCtx Normal (Ctx lis ((v2, val) : nls)) v1
 lookupCtx Linear (Ctx [] _) v1 = Nothing
 lookupCtx Normal (Ctx _ []) v1 = Nothing
 --
+lookupL :: (Eq k, Show k) => Ctx k v -> k -> Maybe v
+lookupL = lookupCtx Linear
+lookupN :: (Eq k, Show k) => Ctx k v -> k -> Maybe v
+lookupN = lookupCtx Normal
+--
 insertCtx :: Eq a => ((c,b) -> a) -> CtxSwitch -> (c,b) -> Ctx a b -> Ctx a b
 insertCtx f Linear x@(c,b) (Ctx ls ns) = Ctx
     ((f x, b) : filter ((/= (f x)) . fst) ls) ns
 insertCtx f Normal x@(c,b) (Ctx ls ns) = Ctx
     ls ((f x, b) : filter ((/= (f x)) . fst) ns)
+--
+insertL :: Eq a => a -> b -> Ctx a b -> Ctx a b
+insertL x y = insertCtx fst Linear (x, y)
+insertN :: Eq a => a -> b -> Ctx a b -> Ctx a b
+insertN x y = insertCtx fst Normal (x, y)

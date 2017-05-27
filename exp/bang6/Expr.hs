@@ -22,7 +22,8 @@ data Case    = (:~>) Expr Expr deriving (Show, Eq)
 type MTerm = Expr
 type VTerm = Expr
 --
-data Expr = Var VName
+data Expr = Var VName 
+          | BangVar VName
           | Lit Val
         --   | Ctr CtrName Expr
           | Suc Expr
