@@ -35,9 +35,23 @@ eval fun@(Lam  arg argT body) = do
     ctx <- ask
     return (Closure ctx fun)
 -- --
--- (LetIn MTerm Expr Expr)
--- (RecIn MTerm Expr Expr)
--- (AppIn MTerm FApp Expr)
+eval (LetIn (Var name) localExp next) = do
+    lv <- eval localExp
+    local (insertCtx fst Linear (name, lv)) (eval next)
+eval (RecIn (Var name) localExp outT next) = do
+    lv <- eval localExp
+    case lv of
+        fun@(Closure fenv fbody) -> do
+            ctx <- ask
+            let funR = Closure (insertCtx fst Normal (name, funR) fenv) fbody
+            local (insertCtx fst Normal (name, funR)) (eval next)
+        otherwise -> throwError $
+            MismatchSynt $ NotAFunction localExp
+eval (AppIn (Var resName) (funName, arg) next) = do
+    ctx <- ask
+    ... lookupCtx ...
+    argVal <- eval arg
+
 -- (BanIn MTerm Expr Expr)
 -- (DupIn MTerm Expr Expr)
 -- --

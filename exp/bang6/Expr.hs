@@ -30,7 +30,7 @@ data Expr = Var VName
           | Lam MTerm Typ Expr
           --
           | LetIn MTerm Expr Expr
-          | RecIn MTerm Expr Expr
+          | RecIn MTerm Expr Typ Expr
           | AppIn MTerm FApp Expr
           | BanIn MTerm Expr Expr
           | DupIn MTerm Expr Expr
@@ -43,7 +43,7 @@ instance Show Val where
     show (N n) = "N" ++ (show $ nat2int n)
     show (B b) = show b
     show (Pr v1 v2) = "("++(show v1)++","++(show v2)++")"
-    show (Closure (Ctx xs ys) (LamIn mt ty fbody)) =
+    show (Closure (Ctx xs ys) (Lam mt ty fbody)) =
         "(C["++(show (mt,ty))++"]"++(show $ length xs)++"/"++(show $ length ys)++")"
 --
 int2nat :: Int -> Nat

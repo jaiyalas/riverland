@@ -28,6 +28,7 @@ instance Show CtxError where
 --
 data IllegalSyntax
     = InvalidConstructor Expr
+    | NotAFunction Expr
     deriving (Show, Eq)
 --
 data MatchError
