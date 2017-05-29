@@ -8,19 +8,26 @@ import Match
 --
 import Control.Monad.Except
 import Control.Monad.Reader
+import Data.Maybe (maybe)
 --
 
 type Check a = ExceptT ErrorMsg (Reader (Ctx VName a)) a
 
 eval :: Expr -> Check Val
 eval (Var vname) = do
-    env <- ask
-    case lookupCtx Linear env vname of
-        Just v -> return v
-        Nothing -> throwError $
-            NotFound $ CtxExhausted Linear vname
+    ctx <- ask
+    maybe
+        (throwError $ NotFound (CtxExhausted Linear vname))
+        (return)
+        (lookupL ctx vname)
+eval (BVar vname) = do
+    ctx <- ask
+    maybe
+        (throwError $ NotFound (CtxExhausted Normal vname))
+        (return)
+        (lookupN ctx vname)
 eval (Lit v) = return v
---   | Ctr CtrName Expr
+-- 
 eval (Suc e) = do
     v <- eval e
     case v of
@@ -47,10 +54,10 @@ eval (RecIn (Var name) localExp outT next) = do
             local (insertCtx fst Normal (name, funR)) (eval next)
         otherwise -> throwError $
             MismatchSynt $ NotAFunction localExp
-eval (AppIn (Var resName) (funName, arg) next) = do
-    ctx <- ask
-    ... lookupCtx ...
-    argVal <- eval arg
+-- eval (AppIn (Var resName) (funName, arg) next) = do
+--     ctx <- ask
+--     ... lookupCtx ...
+--     argVal <- eval arg
 
 -- (BanIn MTerm Expr Expr)
 -- (DupIn MTerm Expr Expr)
