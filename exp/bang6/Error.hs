@@ -20,7 +20,12 @@ instance Show TypeError where
     show (TypeError nt it ot) =
         "["++ nt ++"]: "++(show it)++" does not match "++(show ot)
 --
-data CtxError = CtxExhausted CtxSwitch VName deriving Eq
+data CtxError
+    = LinearCtxExhausted VName
+    | NormalCtxExhausted VName
+    | TotalExhausted VName
+    | UnknownCtxError
+    deriving Eq
 instance Show CtxError where
     show (CtxExhausted cs v) =
         "[Environment "++(show cs)++" exhausted]: key "++
