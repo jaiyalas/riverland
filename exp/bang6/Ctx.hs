@@ -33,6 +33,8 @@ consL vv (Ctx lis nls) = (Ctx (vv : lis) nls)
 consN :: (a,b) -> Ctx a b -> Ctx a b
 consN vv (Ctx lis nls) = (Ctx lis (vv : nls))
 --
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 lookupCtx :: (Eq k, Show k) => CtxSwitch -> Ctx k v -> k -> Maybe v
 lookupCtx Linear (Ctx ((v2, val) : lis) nls) v1
     | v1 == v2 = return val
@@ -48,6 +50,12 @@ lookupL = lookupCtx Linear
 lookupN :: (Eq k, Show k) => Ctx k v -> k -> Maybe v
 lookupN = lookupCtx Normal
 --
+lookupLN
+lookupNL 
+
+
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 insertCtx :: Eq a => ((c,b) -> a) -> CtxSwitch -> (c,b) -> Ctx a b -> Ctx a b
 insertCtx f Linear x@(c,b) (Ctx ls ns) = Ctx
     ((f x, b) : filter ((/= (f x)) . fst) ls) ns
@@ -58,3 +66,4 @@ insertL :: Eq a => a -> b -> Ctx a b -> Ctx a b
 insertL x y = insertCtx fst Linear (x, y)
 insertN :: Eq a => a -> b -> Ctx a b -> Ctx a b
 insertN x y = insertCtx fst Normal (x, y)
+--
