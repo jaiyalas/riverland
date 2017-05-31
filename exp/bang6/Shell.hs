@@ -25,3 +25,17 @@ test1 = prelude
 
 test2 = prelude
       $ (BVar "succ")
+
+test3 = prelude
+      $ LetIn (Var "x") (Lit $ N $ int2nat 1)
+      $ LetIn (Var "y") (Lit $ N $ int2nat 9)
+      $ LetIn (Var "p") (pairVar "x" "y")
+      $ appRTo ("plus", "p") "return"
+      $ Var "return"
+
+test4 = prelude
+      $ LetIn (Var "x") (Lit $ N $ int2nat 1)
+      $ LetIn (Var "y") (Lit $ N $ int2nat 9)
+      $ LetIn (Var "p") (pairVar "x" "x")
+      $ appRTo ("plus", "p") "return"
+      $ Var "return"

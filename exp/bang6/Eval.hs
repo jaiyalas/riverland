@@ -36,6 +36,11 @@ eval fun@(Lam _ _ _ _) = do
     ctx <- ask
     return (Closure ctx fun)
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+eval (LetIn (Pair e1 e2) e next) = do
+    v <- eval e
+    case v of
+        (Pr v1 v2) -> eval (LetIn e1 (Lit v1) $ LetIn e2 (Lit v2) $ next)
+        otherwise -> throwError $ MismatchSynt $ NotAPair e
 eval (LetIn (Var name) e next) = do
     v <- eval e
     local (insertL name v) (eval next)
