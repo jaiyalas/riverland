@@ -14,11 +14,20 @@ data ErrorMsg
     | MismatchSynt IllegalSyntax
     deriving (Show, Eq)
 --
-data TypeError = TypeError String Typ Typ deriving Eq
+data TypeError
+    = TypeError Expr Typ Typ
+    | ValueTypeUnknown Val
+    | NotAFunctionType Expr Typ
+    | TypeInconsist Typ Typ
+    | MatchInconsist [Typ]
+    deriving (Show, Eq)
 --
-instance Show TypeError where
-    show (TypeError nt it ot) =
-        "["++ nt ++"]: "++(show it)++" does not match "++(show ot)
+-- instance Show TypeError where
+--     show (TypeError e it ot) =
+--         "["++ (show e) ++"]: "++(show it)++" does not match "++(show ot)
+--     show (ValueTypeUnknown v) = "Value "++(show v)++" has unknown type."
+--     show (NotAFunctionType e t) = "Expression "++(show e)++" has type "
+--         ++(show t)++" which is not a function"
 --
 data CtxError
     = CtxExhausted CtxSwitch VName
@@ -34,6 +43,7 @@ data IllegalSyntax
     | NotAFunction Expr
     | NotAVariable Expr
     | NotAPair Expr
+    | UnknownSyntaxError Expr
     deriving (Show, Eq)
 --
 data MatchError

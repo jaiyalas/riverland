@@ -8,13 +8,14 @@ prelude e = succExpr e
 --
 succExpr :: Expr -> Expr
 succExpr next = RecIn (BVar "succ")
-    ( Lam "#0" TNat $
-        Match (Var "#0")
+    ( Lam "#0" TNat
+        (Match (Var "#0")
             [ Lit (N Z) :~> Lit (N (S Z))
             , Suc (Var "u") :~>
                 appRTo ("succ", "u") "u2" (Suc $ Var "u2")
-            ]
-    ) TNat next
+            ])
+        TNat
+    ) next
 
 
 
