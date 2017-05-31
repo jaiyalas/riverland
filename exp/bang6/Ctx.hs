@@ -50,9 +50,6 @@ lookupL = lookupCtx Linear
 lookupN :: (Eq k, Show k) => Ctx k v -> k -> Maybe v
 lookupN = lookupCtx Normal
 --
-lookupLN
-lookupNL 
-
 
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

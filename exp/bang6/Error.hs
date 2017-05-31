@@ -21,9 +21,7 @@ instance Show TypeError where
         "["++ nt ++"]: "++(show it)++" does not match "++(show ot)
 --
 data CtxError
-    = LinearCtxExhausted VName
-    | NormalCtxExhausted VName
-    | TotalExhausted VName
+    = CtxExhausted CtxSwitch VName
     | UnknownCtxError
     deriving Eq
 instance Show CtxError where
@@ -34,6 +32,8 @@ instance Show CtxError where
 data IllegalSyntax
     = InvalidConstructor Expr
     | NotAFunction Expr
+    | NotAVariable Expr
+    | NotAPair Expr
     deriving (Show, Eq)
 --
 data MatchError
