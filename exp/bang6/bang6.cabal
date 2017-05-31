@@ -17,8 +17,9 @@ library
     Eval
     Func
     Shell
+    Util
+    Typing
     -- Rval
-    -- Typing
   default-language:    Haskell2010
   build-depends: base >=4.9 && <4.10
                , mtl >=2.2 && <2.3

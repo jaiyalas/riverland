@@ -28,10 +28,10 @@ data Expr = Var VName
           -- | Ctr CtrName Expr
           | Suc Expr
           | Pair Expr Expr
-          | Lam VName Typ Expr
+          | Lam VName Typ Expr Typ
           --
           | LetIn MTerm Expr Expr
-          | RecIn MTerm Expr Typ Expr
+          | RecIn MTerm Expr Expr
           | AppIn MTerm FApp Expr
           | BanIn MTerm Expr Expr
           | DupIn MTerm Expr Expr
@@ -44,8 +44,8 @@ instance Show Val where
     show (N n) = "N" ++ (show $ nat2int n)
     show (B b) = show b
     show (Pr v1 v2) = "("++(show v1)++","++(show v2)++")"
-    show (Closure (Ctx xs ys) (Lam mt ty fbody)) =
-        "(C["++(show (mt,ty))++"]"++(show $ length xs)++"/"++(show $ length ys)++")"
+    show (Closure (Ctx xs ys) (Lam mt tyIn fbody tyOut)) =
+        "(C["++(show (mt,tyIn,tyOut))++"]"++(show $ length xs)++"/"++(show $ length ys)++")"
 --
 int2nat :: Int -> Nat
 int2nat 0 = Z
@@ -53,6 +53,7 @@ int2nat n = S $ int2nat (n-1)
 nat2int :: Nat -> Int
 nat2int Z = 0
 nat2int (S n) = 1 + nat2int n
+--
 
 {-
 I'd like to separate Expr and Pattern/Term.
