@@ -41,7 +41,7 @@ eval fun@(Lam _ _ _) = do
 eval (LetIn (Var name) e next) = do
     v <- eval e
     local (insertL name v) (eval next)
-eval (RecIn (Var name) e outT next) = do
+eval (RecIn (BVar name) e outT next) = do
     v <- eval e
     case v of
         fun@(Closure fenv fbody) -> do
