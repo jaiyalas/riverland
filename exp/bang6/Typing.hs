@@ -85,13 +85,15 @@ typeof (MatEq e caseEq caseNEq) = do
     vt <- typeof e
     case vt of
         (TProd t1 t2) -> if t1 == t2
-            then matTAll t1 caseEq 
+            then matTAll t1 caseEq
             else matTAll t2 caseNEq
         otherwise -> throwError $ MismatchSynt $ NotAPair e
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 typeof e = throwError $ MismatchSynt $ UnknownSyntaxError e
 --
 --
+
+
 
 matchingT :: Typ -> Expr -> Except ErrorMsg (Ctx VName Typ)
 matchingT t (Var vname) = return $ insertL vname t mempty
@@ -111,7 +113,6 @@ matTAll :: Typ -> Case -> Check Typ
 matTAll t (e :~> next) = do
     newCtx <- runExceptId $ matchingT t e
     runCheckWith newCtx (typeof next)
-
 
 --
 typeofVal :: Val -> Except ErrorMsg Typ
