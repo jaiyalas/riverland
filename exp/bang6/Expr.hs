@@ -3,6 +3,8 @@ module Expr where
 import Types
 import Ctx
 --
+import Control.Monad
+--
 type VName   = String
 type FunName = String
 --
@@ -55,7 +57,34 @@ nat2int Z = 0
 nat2int (S n) = 1 + nat2int n
 --
 
--- freeVar :: Expr -> [VName]
+freeVar :: Expr -> [VName]
+freeVar (Var  vn) = return vn
+freeVar (BVar vn) = return vn
+freeVar (Lit _) = mzero
+--
+freeVar (Suc e) = freeVar e
+freeVar (Pair e1 e2) =
+    freeVar e1 `mplus` freeVar e2
+freeVar (Lam vn tyIn fbody tyOut) =
+    filter (/= vn) $ freeVar fbody
+freeVar (LetIn vn e next) =
+    filter ((flip notElem) (freeVar vn)) $
+    (freeVar e `mplus` freeVar next)
+freeVar (RecIn vn e next) = freeVar (LetIn vn e next)
+freeVar (BanIn vn e next) = freeVar (LetIn vn e next)
+freeVar (DupIn vn e next) = freeVar (LetIn vn e next)
+freeVar (AppIn vn (funE, argE) next) =
+    filter ((flip notElem) (freeVar vn)) $
+    (freeVar funE `mplus` freeVar argE `mplus` freeVar next)
+freeVar (Match vn cases) =
+    filter ((flip notElem) $ freeVar vn) $
+    concat $ map freeCase cases
+freeVar (MatEq vn case1 case2) =
+    freeVar (Match vn [case1,case2])
+
+freeCase :: Case -> [VName]
+freeCase (e :~> next) =
+    filter ((flip notElem) $ freeVar e) $ (freeVar next)
 
 {-
 I'd like to separate Expr and Pattern/Term.

@@ -3,10 +3,10 @@
 + [ ] remove tyOut from Lam
 + [ ] split for ctx of linear logic
     + [Ctx.hs]
-        + `popout :: VName -> Ctx -> Except SomeError (Val, Ctx)`
-        + `splitCtx :: [VName] -> [VName] -> Ctx -> Except SomeError (Ctx, Ctx)`
+        + [ ] `popout :: VName -> Ctx -> Except SomeError (Val, Ctx)`
+        + [ ] `splitCtx :: [VName] -> [VName] -> Ctx -> Except SomeError (Ctx, Ctx)`
     + [Expr.hs]
-        + `freeVar :: Expr -> [VName]`
+        + [x] `freeVar :: Expr -> [VName]`
 + [ ] type checking with ctx split and check
 + [ ] translator for Expr to BiGuL(?)
 + [ ] re-implement except/error
