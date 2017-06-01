@@ -1,20 +1,29 @@
 # todo
 
-+ [ ] local function and global function
-+ [ ] bang!
-+ [ ] flatten term-structure (back to old school)
-    + [ ] 換掉 NatS / NatZ by new meta-constructor(?)
-    + [ ] merge `term` into `Expr`
-+ [ ] adding types info into Expr level
-    + [ ] add function types
-    + [x] add parameter type for lambda
-+ [ ] ctx split or used label
-    + maybe both of them will be needed
-        + split for ctx of linear logic
-        + label for indexing type (ant thus can be expended further)
+
++ [ ] ctx split or
++ [ ] split for ctx of linear logic
+    + [Ctx.hs]
+        + `popout :: VName -> Ctx -> Except SomeError (Val, Ctx)`
+        + `splitCtx :: [VName] -> [VName] -> Ctx -> Except SomeError (Ctx, Ctx)`
+    + [Expr.hs]
+        + `freeVar :: Expr -> [VName]`
 + [ ] type checking with ctx split and check
-+ [ ] LetIn and RecIn again - avoid type inference of recursion
-+ [ ] add Except Monad
++ [ ] re-implement except/error
++ [ ] used label (rather than dual-env)
+    + label for indexing type (ant thus can be expended further)
++ [x] simple type checking
++ [x] LetIn and RecIn again - avoid type inference of recursion
++ [x] add Except Monad
++ [x] add Reader Monad
++ [x] local function and global function
++ [x] bang!
++ [x] flatten term-structure (back to old school)
+    + [x] 換掉 NatS / NatZ by new meta-constructor(?)
+    + [x] merge `term` into `Expr`
++ [x] adding types info into Expr level
+    + [x] add function types
+    + [x] add parameter type for lambda
 
 ## minor
 

@@ -55,6 +55,8 @@ nat2int Z = 0
 nat2int (S n) = 1 + nat2int n
 --
 
+-- freeVar :: Expr -> [VName]
+
 {-
 I'd like to separate Expr and Pattern/Term.
 which means I dont want to see any of
