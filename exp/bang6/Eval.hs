@@ -77,6 +77,9 @@ eval (AppIn (Var resName) (Lam fmt tyIn fbody tyOut, _arg) next) = do
     ctx <- ask
     (arg, swArg) <- runExceptId $ deVar _arg
     argV <- runExceptId $ lookupCtx' swArg ctx arg
+    -- HERE !!! HERE !!! HERE !!!
+    -- HERE !!! HERE !!! HERE !!!
+    -- HERE !!! HERE !!! HERE !!!
     resV <- local (insertL fmt argV) (eval fbody)
     -- HERE !!! HERE !!! HERE !!!
     -- HERE !!! HERE !!! HERE !!!
