@@ -28,6 +28,9 @@ eval (Suc e) = do
             MismatchSynt $
             InvalidConstructor (Suc e)
 eval (Pair e1 e2) = do
+    -- HERE !!! HERE !!! HERE !!!
+    -- HERE !!! HERE !!! HERE !!!
+    -- HERE !!! HERE !!! HERE !!!
     v1 <- eval e1
     v2 <- eval e2
     return (Pr v1 v2)
@@ -39,22 +42,31 @@ eval fun@(Lam _ _ _ _) = do
 eval (LetIn (Pair e1 e2) e next) = do
     v <- eval e
     case v of
-        (Pr v1 v2) -> eval (LetIn e1 (Lit v1) $ LetIn e2 (Lit v2) $ next)
+        (Pr v1 v2) -> do
+            -- HERE !!! HERE !!! HERE !!!
+            -- HERE !!! HERE !!! HERE !!!
+            -- HERE !!! HERE !!! HERE !!!
+            eval (LetIn e1 (Lit v1) $ LetIn e2 (Lit v2) $ next)
         otherwise -> throwError $ MismatchSynt $ NotAPair e
 eval (LetIn (Var name) e next) = do
     v <- eval e
     local (insertL name v) (eval next)
+-- maybe `e` should be `Lam ...` ? :o
 eval (RecIn (BVar name) e next) = do
     v <- eval e
     case v of
         fun@(Closure fenv fbody) -> do
+            -- MonadFIx ???
             let funR = Closure (insertN name funR fenv) fbody
             local (insertN name funR) (eval next)
         otherwise ->
             throwError $ MismatchSynt $ NotAFunction e
 eval (BanIn (BVar vname) e next) = do
+    -- HERE ! HERE ! HERE !
+    -- HERE ! HERE ! HERE !
+    -- HERE ! HERE ! HERE !
     v <- eval e
-    local (insertL vname v) (eval next)
+    local (insertN vname v) (eval next)
 eval (DupIn (Pair (Var vn1) (Var vn2)) e next) = do
     v <- eval e
     local (insertL vn2 v . insertL vn1 v) (eval next)
@@ -66,6 +78,9 @@ eval (AppIn (Var resName) (Lam fmt tyIn fbody tyOut, _arg) next) = do
     (arg, swArg) <- runExceptId $ deVar _arg
     argV <- runExceptId $ lookupCtx' swArg ctx arg
     resV <- local (insertL fmt argV) (eval fbody)
+    -- HERE !!! HERE !!! HERE !!!
+    -- HERE !!! HERE !!! HERE !!!
+    -- HERE !!! HERE !!! HERE !!!
     local (insertL resName resV) (eval next)
 -- 可以接受 (Var/BVar fun) (Var/BVar arg) 共四種 application modes
 eval (AppIn (Var resName) (_fun, _arg) next) = do
@@ -76,6 +91,9 @@ eval (AppIn (Var resName) (_fun, _arg) next) = do
     case v1 of
         (Closure fenv (Lam fmt tyIn fbody tyOut)) -> do
             argV <- runExceptId $ lookupCtx' swArg ctx arg
+            -- HERE !!! HERE !!! HERE !!!
+            -- HERE !!! HERE !!! HERE !!!
+            -- HERE !!! HERE !!! HERE !!!
             resV <- runCheckWith (insertL fmt argV fenv) (eval fbody)
             local (insertL resName resV) (eval next)
         otherwise -> throwError $ MismatchSynt $ NotAFunction _fun

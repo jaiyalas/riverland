@@ -64,3 +64,8 @@ insertL x y = insertCtx fst Linear (x, y)
 insertN :: Eq a => a -> b -> Ctx a b -> Ctx a b
 insertN x y = insertCtx fst Normal (x, y)
 --
+
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+-- + popout and remain
+-- + [VName] -> [VName] -> Ctx -> Except SomeError (Ctx, Ctx)

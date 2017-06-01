@@ -35,6 +35,7 @@ typeof (Pair e1 e2) = do
 typeof (Lam _ tyIn _ tyOut) = do
     return $ TFunc tyIn tyOut
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+-- typeof (LetIn (Pair e1 e2) e next) = ...
 typeof (LetIn (Var name) e next) = do
     v <- typeof e
     local (insertL name v) (typeof next)
