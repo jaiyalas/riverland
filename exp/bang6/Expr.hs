@@ -85,22 +85,3 @@ freeVar (MatEq vn case1 case2) =
 freeCase :: Case -> [VName]
 freeCase (e :~> next) =
     filter ((flip notElem) $ freeVar e) $ (freeVar next)
-
-{-
-I'd like to separate Expr and Pattern/Term.
-which means I dont want to see any of
-
-    + variable
-    + pattern
-    + constructor
-
-in the expr-level.
-
-This should be the reason why I use a complicated
-variable/pattern definition.
-
-As matter of fact, I hoped to implement this language
-in terms of compond calculus mentioned in book "pattern calculus".
-However, for the sack of easiness, I should drop this idea
-and go back to the traditional way.
--}

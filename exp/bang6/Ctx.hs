@@ -67,5 +67,35 @@ insertN x y = insertCtx fst Normal (x, y)
 
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
--- + popout and remain
--- + [VName] -> [VName] -> Ctx -> Except SomeError (Ctx, Ctx)
+popCtx :: (Eq k, Show k)
+       => CtxSwitch
+       -> Ctx k v
+       -> k
+       -> Maybe (v, Ctx)
+popCtx Normal ctx@(Ctx ls ns) k =
+    lookupL ctx k >>=
+        (\v -> return (v, Ctx ls (filter ((/= k) . fst) ns)))
+popCtx Linear ctx@(Ctx ls ns) k =
+    lookupL ctx k >>=
+        (\v -> return (v, Ctx (filter ((/= k) . fst) ls) ns))
+
+
+
+--
+splitCtx :: [VName]
+         -> [VName]
+         -> Ctx
+         -> Except SomeError (Ctx, Ctx)
+--
+
+
+
+
+
+
+
+
+
+
+
+--
