@@ -78,16 +78,21 @@ popCtx Normal ctx@(Ctx ls ns) k =
 popCtx Linear ctx@(Ctx ls ns) k =
     lookupL ctx k >>=
         (\v -> return (v, Ctx (filter ((/= k) . fst) ls) ns))
+--
+
+-- {-# LANGUAGE MultiParamTypeClasses #-}
+-- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
+-- https://wiki.haskell.org/GHC/Type_families
 
 
-
+-- class Splitable f where
+--     split :: [a]
 --
 -- splitCtx :: [VName]
 --          -> [VName]
 --          -> Ctx
 --          -> Except SomeError (Ctx, Ctx)
 --
-
 
 
 
