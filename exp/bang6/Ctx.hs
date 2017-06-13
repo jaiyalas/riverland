@@ -71,23 +71,29 @@ popCtx :: (Eq k, Show k)
        => CtxSwitch
        -> Ctx k v
        -> k
-       -> Maybe (v, Ctx)
+       -> Maybe (v, Ctx k v)
 popCtx Normal ctx@(Ctx ls ns) k =
     lookupL ctx k >>=
         (\v -> return (v, Ctx ls (filter ((/= k) . fst) ns)))
 popCtx Linear ctx@(Ctx ls ns) k =
     lookupL ctx k >>=
         (\v -> return (v, Ctx (filter ((/= k) . fst) ls) ns))
-
-
-
---
-splitCtx :: [VName]
-         -> [VName]
-         -> Ctx
-         -> Except SomeError (Ctx, Ctx)
 --
 
+-- {-# LANGUAGE MultiParamTypeClasses #-}
+-- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
+-- https://wiki.haskell.org/GHC/Type_families
+
+
+-- class Splitable f where
+--     split :: [a]
+--
+-- splitCtx :: [VName] --
+--          -> [VName]
+--          -> Ctx
+--          -> Except SomeError (Ctx, Ctx)
+-- --
+-- splitCtx ns1 ns2 ctx
 
 
 
