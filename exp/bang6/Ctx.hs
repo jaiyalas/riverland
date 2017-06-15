@@ -84,14 +84,18 @@ popCtx Linear ctx@(Ctx ls ns) k =
 -- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
 -- https://wiki.haskell.org/GHC/Type_families
 
+-- https://www.schoolofhaskell.com/user/commercial/content/covariance-contravariance
+-- https://stackoverflow.com/questions/38034077/what-is-a-contravariant-functor
+-- https://ncatlab.org/nlab/show/profunctor
+-- https://ncatlab.org/nlab/show/contravariant+functor
 
 -- class Splitable f where
 --     split :: [a]
 --
--- splitCtx :: [VName]
---          -> [VName]
---          -> Ctx
---          -> Except SomeError (Ctx, Ctx)
+-- splitCtx :: [k] -- linear
+--          -> [k] -- normal
+--          -> Ctx k v
+--          -> Except SomeError (Ctx k v, Ctx k v)
 --
 
 
