@@ -2,6 +2,10 @@ module Ctx where
 --
 import Control.Monad.Except
 --
+import Data.List (lookup)
+
+--
+--
 type Env a b = [(a,b)]
 --
 (+>+) :: Eq a => Env a b -> Env a b -> Env a b
@@ -79,7 +83,30 @@ popCtx Linear ctx@(Ctx ls ns) k =
     lookupL ctx k >>=
         (\v -> return (v, Ctx (filter ((/= k) . fst) ls) ns))
 --
+splitEnv :: Eq k => [k] -> Env k v -> Except (CtxInternalError k) (Env k v, Env k v)
+splitEnv ks xs = splitEnv' ks xs mempty
+--
+splitEnv' :: Eq k => [k]   -- ^ filtering key
+                -> Env k v -- ^ input env
+                -> Env k v -- ^ filtered env
+                -> Except (CtxInternalError k) (Env k v, Env k v)
+splitEnv' [] xs ys = return (xs, ys)
+splitEnv' (k:ks) xs ys = maybe
+    (throwError (CtxError k))
+    (\v -> splitEnv' ks xs ((k,v):ys))
+    (lookup k xs)
+--
+splitCtx :: Eq k
+         => [k] -- linear
+         -> [k] -- normal
+         -> Ctx k v
+         -> Except (CtxInternalError k) (Ctx k v, Ctx k v)
+splitCtx lns nns (Ctx ls ns) = do
+    (leftLEnv, selectedLEnv) <- splitEnv lns ls
+    (leftNEnv, selectedNEnv) <- splitEnv nns ns
+    return $ (Ctx selectedLEnv selectedNEnv, Ctx leftLEnv leftNEnv)
 
+--
 -- {-# LANGUAGE MultiParamTypeClasses #-}
 -- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
 -- https://wiki.haskell.org/GHC/Type_families
@@ -88,18 +115,10 @@ popCtx Linear ctx@(Ctx ls ns) k =
 -- https://stackoverflow.com/questions/38034077/what-is-a-contravariant-functor
 -- https://ncatlab.org/nlab/show/profunctor
 -- https://ncatlab.org/nlab/show/contravariant+functor
-
--- class Splitable f where
---     split :: [a]
 --
--- splitCtx :: [k] -- linear
---          -> [k] -- normal
---          -> Ctx k v
---          -> Except SomeError (Ctx k v, Ctx k v)
---
-
-
-
+data CtxInternalError k
+    = CtxError k
+    deriving (Show, Eq)
 
 
 

@@ -37,6 +37,7 @@ data TypeError
 --
 data CtxError
     = CtxExhausted CtxSwitch VName
+    | CtxSplitNotFound
     | UnknownCtxError
     deriving Eq
 instance Show CtxError where
@@ -57,3 +58,4 @@ data MatchError
     | Simple Val Expr
     | Exhausted
     deriving (Show, Eq)
+--
