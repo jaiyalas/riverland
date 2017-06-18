@@ -8,9 +8,9 @@
     + [Expr.hs]
         + [x] `freeVar :: Expr -> [VName]`
 + [ ] type checking with ctx split and check
-+ [ ] re-implement Error
-+ [ ] translator for Expr to BiGuL(?)
 + [ ] re-implement except/error
++ [ ] rval
++ [ ] translator for Expr to BiGuL(?)
 + [ ] used label (rather than dual-env)
     + label for indexing type (ant thus can be expended further)
 + [x] simple type checking
