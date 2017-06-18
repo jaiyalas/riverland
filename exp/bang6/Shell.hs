@@ -12,6 +12,11 @@ import Data.List
 import Control.Monad.Except
 import Control.Monad.Reader
 --
+exec :: Expr -> IO () -- Either ErrorMsg (Val, Typ)
+exec e = do
+    putStrLn $ show $ run e
+    putStrLn $ show $ ty e
+--
 run :: Expr -> Either ErrorMsg Val
 run e = (flip runReader) mempty
       $ runExceptT (eval e)
@@ -36,8 +41,8 @@ test3 = prelude
       $ Var "return"
 --
 test4 = prelude
-      $ LetIn (Var "x") (Lit $ N $ int2nat 1)
-      $ LetIn (Var "y") (Lit $ N $ int2nat 9)
+      $ LetIn (Var "x") (Lit $ N $ int2nat 9)
+      $ LetIn (Var "y") (Lit $ N $ int2nat 3)
       $ LetIn (Var "p") (pairVar "x" "y")
       $ appRTo ("plus", "p") "return"
       $ Var "return"

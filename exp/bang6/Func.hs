@@ -16,7 +16,7 @@ succExpr next = RecIn (BVar "succ")
             , Suc (Var "u") :~>
                 appRTo ("succ", "u") "u2" (Suc $ Var "u2")
             ])
-        -- TNat -- return type
+        TNat -- return type
     ) next
 
 plusExpr :: Expr -> Expr
@@ -32,7 +32,7 @@ plusExpr next = RecIn (BVar "plus")
                     Pair (Var "x2") (Suc (Var "u2"))
                 )
             ] )
-        -- (TProd TNat TNat) -- return type
+        (TProd TNat TNat) -- return type
     ) next
 
 

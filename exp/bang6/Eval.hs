@@ -35,7 +35,7 @@ eval (Pair e1 e2) = do
     v2 <- eval e2
     return (Pr v1 v2)
 -- Lambda 的 parameter 限定是 linear (所以只能給 VName)
-eval fun@(Lam _ _ _) = do
+eval fun@(Lam _ _ _ _) = do
     ctx <- ask
     return (Closure ctx fun)
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -73,7 +73,7 @@ eval (DupIn (Pair (Var vn1) (Var vn2)) e next) = do
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- 可以接受 lambda 來做為 application 的格式
 -- Lambda 的 parameter 限定是 linear (所以只能給 VName)
-eval (AppIn (Var resName) (Lam fmt tyIn fbody, _arg) next) = do
+eval (AppIn (Var resName) (Lam fmt tyIn fbody tyOut, _arg) next) = do
     ctx <- ask
     (arg, swArg) <- runExceptId $ deVar _arg
     argV <- runExceptId $ lookupCtx' swArg ctx arg
@@ -92,7 +92,7 @@ eval (AppIn (Var resName) (_fun, _arg) next) = do
     (arg, swArg) <- runExceptId $ deVar _arg
     v1 <- runExceptId $ lookupCtx' swFun ctx fun
     case v1 of
-        (Closure fenv (Lam fmt tyIn fbody)) -> do
+        (Closure fenv (Lam fmt tyIn fbody tyOut)) -> do
             argV <- runExceptId $ lookupCtx' swArg ctx arg
             -- HERE !!! HERE !!! HERE !!!
             -- HERE !!! HERE !!! HERE !!!

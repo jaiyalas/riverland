@@ -32,7 +32,7 @@ data Expr = Var VName
           -- | Ctr CtrName Expr
           | Suc Expr
           | Pair Expr Expr
-          | Lam VName Typ Expr -- Typ
+          | Lam VName Typ Expr Typ {- necessary for recursion -}
           --
           | LetIn MTerm Expr Expr
           | RecIn MTerm Expr Expr
@@ -48,7 +48,7 @@ instance Show Val where
     show (N n) = "N" ++ (show $ nat2int n)
     show (B b) = show b
     show (Pr v1 v2) = "("++(show v1)++","++(show v2)++")"
-    show (Closure (Ctx xs ys) (Lam mt tyIn fbody {-tyOut-})) =
+    show (Closure (Ctx xs ys) (Lam mt tyIn fbody tyOut)) =
         "(C["++(show (mt,tyIn{-,tyOut-}))++"]"++(show $ length xs)++"/"++(show $ length ys)++")"
 --
 int2nat :: Int -> Nat
@@ -69,7 +69,7 @@ freeVar (Pair e1 e2) =
     let (ls1, ns1) = freeVar e1
         (ls2, ns2) = freeVar e2
     in (ls1 `mappend` ls2, ns1 `mappend` ns2)
-freeVar (Lam vn tyIn fbody {-tyOut-}) =
+freeVar (Lam vn tyIn fbody tyOut) =
     bimap (filter (/= vn)) (filter (/= vn)) $ freeVar fbody
 freeVar (LetIn vn e next) =
     let (ls1, ns1) = freeVar next
