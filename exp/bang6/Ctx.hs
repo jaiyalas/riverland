@@ -83,38 +83,35 @@ popCtx Linear ctx@(Ctx ls ns) k =
     lookupL ctx k >>=
         (\v -> return (v, Ctx (filter ((/= k) . fst) ls) ns))
 --
-splitEnv :: Eq k => [k] -> Env k v -> Except (CtxInternalError k) (Env k v, Env k v)
+splitEnv :: Eq k
+         => [k] -- ^ targeting names
+         -> Env k v
+         -> Except (CtxInternalError k) ( Env k v
+                                        , Env k v)
 splitEnv ks xs = splitEnv' ks xs mempty
 --
-splitEnv' :: Eq k => [k]   -- ^ filtering key
+splitEnv' :: Eq k => [k]   -- ^ targeting key
                 -> Env k v -- ^ input env
-                -> Env k v -- ^ filtered env
-                -> Except (CtxInternalError k) (Env k v, Env k v)
+                -> Env k v -- ^ (accumulating) filtered env
+                -> Except (CtxInternalError k) ( Env k v
+                                               , Env k v)
 splitEnv' [] xs ys = return (xs, ys)
 splitEnv' (k:ks) xs ys = maybe
     (throwError (CtxError k))
-    (\v -> splitEnv' ks xs ((k,v):ys))
+    (\v -> splitEnv' ks (filter ((/= k).fst) xs) ((k,v):ys))
     (lookup k xs)
 --
 splitCtx :: Eq k
-         => [k] -- linear
-         -> [k] -- normal
+         => [k] -- ^ linear
+         -> [k] -- ^ normal
          -> Ctx k v
-         -> Except (CtxInternalError k) (Ctx k v, Ctx k v)
+         -> Except (CtxInternalError k) ( Ctx k v   -- ^ selected
+                                        , Ctx k v ) -- ^ remains
 splitCtx lns nns (Ctx ls ns) = do
     (leftLEnv, selectedLEnv) <- splitEnv lns ls
     (leftNEnv, selectedNEnv) <- splitEnv nns ns
     return $ (Ctx selectedLEnv selectedNEnv, Ctx leftLEnv leftNEnv)
 
---
--- {-# LANGUAGE MultiParamTypeClasses #-}
--- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
--- https://wiki.haskell.org/GHC/Type_families
-
--- https://www.schoolofhaskell.com/user/commercial/content/covariance-contravariance
--- https://stackoverflow.com/questions/38034077/what-is-a-contravariant-functor
--- https://ncatlab.org/nlab/show/profunctor
--- https://ncatlab.org/nlab/show/contravariant+functor
 --
 data CtxInternalError k
     = CtxError k

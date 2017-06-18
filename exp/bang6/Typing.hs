@@ -29,10 +29,13 @@ typeof (Suc e) = do
             MismatchType $
             TypeError (Suc e) TNat nott
 typeof (Pair e1 e2) = do
-    v1 <- typeof e1
-    v2 <- typeof e2
+    ctx <- ask
+    (ctxE1, ctxLeft) <- runExceptId $ splitCtxExpr e1 ctx
+    v1 <- runCheckWith ctxE1 $ typeof e1
+    v2 <- runCheckWith ctxLeft $ typeof e2
     return (TProd v1 v2)
-typeof (Lam _ tyIn _ tyOut) = do
+typeof (Lam vn tyIn fbody {-tyOut-}) = do
+    tyOut <- local (insertL vn tyIn) (typeof fbody)
     return $ TFunc tyIn tyOut
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- typeof (LetIn (Pair e1 e2) e next) = ...
@@ -44,35 +47,39 @@ typeof (RecIn (BVar name) e next) = do
     local (insertN name v) (typeof next)
 typeof (BanIn (BVar vname) e next) = do
     v <- typeof e
-    local (insertL vname v) (typeof next)
+    local (insertN vname v) (typeof next)
 typeof (DupIn (Pair (Var vn1) (Var vn2)) e next) = do
     v <- typeof e
     local (insertL vn2 v . insertL vn1 v) (typeof next)
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- 可以接受 lambda 來做為 application 的格式
 -- -- Lambda 的 parameter 限定是 linear (所以只能給 VName)
-typeof (AppIn (Var resName) (Lam fmt tyIn fbody tyOut, _arg) next) = do
+typeof (AppIn (Var resName) (Lam fmt tyIn fbody {-tyOut-}, _arg) next) = do
     ctx <- ask
+    -- _arg :: Expr
     (arg, swArg) <- runExceptId $ deVar _arg
-    argT <- runExceptId $ lookupCtx' swArg ctx arg
+    -- ctxRemains ++ [(arg, argT)] = ctx
+    (argT, ctxRemains) <- runExceptId $ popCtx' swArg ctx arg
     if argT == tyIn
         then do
-            resT <- local (insertL fmt argT) (typeof fbody)
-            if resT == tyOut
-                then local (insertL resName resT) (typeof next)
-                else throwError $ MismatchType $ TypeError _arg resT tyOut
+            resT <- local (\_ -> insertL fmt argT ctxRemains) (typeof fbody)
+            (_, ctxRemains2) <- runExceptId $ splitCtxExpr fbody ctxRemains
+            local (\_ -> insertL resName resT ctxRemains2) (typeof next)
+            -- if resT == undefined
+            --     then local (insertL resName resT) (typeof next)
+            --     else throwError $ MismatchType $ TypeError _arg resT tyOut
         else throwError $ MismatchType $ TypeError _arg argT tyIn
 -- -- 可以接受 (Var/BVar fun) (Var/BVar arg) 共四種 application modes
 typeof (AppIn (Var resName) (_fun, _arg) next) = do
     ctx <- ask
     (fun, swFun) <- runExceptId $ deVar _fun
     (arg, swArg) <- runExceptId $ deVar _arg
-    funT <- runExceptId $ lookupCtx' swFun ctx fun
-    argT <- runExceptId $ lookupCtx' swArg ctx arg
+    (funT, ctxRemains1) <- runExceptId $ popCtx' swFun ctx fun
+    (argT, ctxRemains2) <- runExceptId $ popCtx' swArg ctxRemains1 arg
     case funT of
         (TFunc tyIn tyOut) ->
             if argT == tyIn
-                then local (insertL resName tyOut) (typeof next)
+                then local (\_ -> insertL resName tyOut ctxRemains2) (typeof next)
                 else throwError $ MismatchType $ TypeError _arg argT tyIn
         otherwise -> throwError $ MismatchType $ NotAFunctionType _fun funT
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

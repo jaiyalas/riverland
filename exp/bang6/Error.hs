@@ -15,11 +15,6 @@ data ErrorMsg
     | UnknownError
     deriving (Show, Eq)
 --
-
-
-
-
-
 data TypeError
     = TypeError Expr Typ Typ
     | ValueTypeUnknown Val
