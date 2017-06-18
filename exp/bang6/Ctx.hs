@@ -77,8 +77,9 @@ popCtx :: (Eq k, Show k)
        -> k
        -> Maybe (v, Ctx k v)
 popCtx Normal ctx@(Ctx ls ns) k =
-    lookupL ctx k >>=
-        (\v -> return (v, Ctx ls (filter ((/= k) . fst) ns)))
+    lookupN ctx k >>=
+        (\v -> return (v, Ctx ls ns))
+        -- (\v -> return (v, Ctx ls (filter ((/= k) . fst) ns)))
 popCtx Linear ctx@(Ctx ls ns) k =
     lookupL ctx k >>=
         (\v -> return (v, Ctx (filter ((/= k) . fst) ls) ns))
@@ -103,15 +104,23 @@ splitEnv' (k:ks) xs ys = maybe
 --
 splitCtx :: Eq k
          => [k] -- ^ linear
-         -> [k] -- ^ normal
          -> Ctx k v
          -> Except (CtxInternalError k) ( Ctx k v   -- ^ selected
                                         , Ctx k v ) -- ^ remains
-splitCtx lns nns (Ctx ls ns) = do
+splitCtx lns (Ctx ls ns) = do
     (leftLEnv, selectedLEnv) <- splitEnv lns ls
-    (leftNEnv, selectedNEnv) <- splitEnv nns ns
-    return $ (Ctx selectedLEnv selectedNEnv, Ctx leftLEnv leftNEnv)
-
+    return $ (Ctx selectedLEnv ns, Ctx leftLEnv ns)
+--
+-- splitCtx :: Eq k
+--          => [k] -- ^ linear
+--          -> [k] -- ^ normal
+--          -> Ctx k v
+--          -> Except (CtxInternalError k) ( Ctx k v   -- ^ selected
+--                                         , Ctx k v ) -- ^ remains
+-- splitCtx lns nns (Ctx ls ns) = do
+--     (leftLEnv, selectedLEnv) <- splitEnv lns ls
+--     (leftNEnv, selectedNEnv) <- splitEnv nns ns
+--     return $ (Ctx selectedLEnv selectedNEnv, Ctx leftLEnv leftNEnv)
 --
 data CtxInternalError k
     = CtxError k

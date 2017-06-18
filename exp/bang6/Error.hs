@@ -34,6 +34,7 @@ data CtxError
     = CtxExhausted CtxSwitch VName
     | CtxSplitNotFound
     | UnknownCtxError
+    | CtxSplitError VName
     deriving Eq
 instance Show CtxError where
     show (CtxExhausted cs v) =

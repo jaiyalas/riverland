@@ -47,7 +47,9 @@ deVar (BVar n) = return (n, Normal)
 deVar e = throwError $ MismatchSynt $ NotAVariable e
 --
 splitCtxExpr :: Eq v => Expr -> Ctx VName v -> Except ErrorMsg (Ctx VName v, Ctx VName v)
-splitCtxExpr e ctx = withExcept foo $ splitCtx (fvL e) (fvN e) ctx
+splitCtxExpr e ctx =
+    let (fvsl, fvsn) = (freeVar e)
+    in withExcept foo $ splitCtx fvsl ctx
 --
 foo :: CtxInternalError VName -> ErrorMsg
-foo (CtxError k) = NotFound $ CtxExhausted Linear k
+foo (CtxError k) = NotFound $ CtxSplitError k

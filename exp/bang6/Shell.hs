@@ -38,11 +38,17 @@ test3 = prelude
 test4 = prelude
       $ LetIn (Var "x") (Lit $ N $ int2nat 1)
       $ LetIn (Var "y") (Lit $ N $ int2nat 9)
-      $ LetIn (Var "p") (pairVar "x" "x")
+      $ LetIn (Var "p") (pairVar "x" "y")
       $ appRTo ("plus", "p") "return"
       $ Var "return"
 --
-
+test5 = LetIn (Var "x") (Lit $ N $ int2nat 1)
+      $ LetIn (Var "y") (Lit $ N $ int2nat 9)
+      $ LetIn (Var "p") (pairVar "x" "y")
+      $ Var "p"
+--
+test6 = LetIn (Var "x") (Lit $ N $ int2nat 1)
+      $ Var "x"
 -- names :: [String] -> [String]
 -- names xs = xs ++ zipWith (++) (smalloop xs) (foo xs (names xs))
 --
