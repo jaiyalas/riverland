@@ -34,38 +34,33 @@ test2 = prelude
       $ (BVar "succ")
 --
 test3 = prelude
-      $ LetIn (Var "x") (Lit $ N $ int2nat 1)
-      $ LetIn (Var "y") (Lit $ N $ int2nat 9)
+      $ LetIn (Var "x") (Lit $ N $ int2nat 3)
+      $ LetIn (Var "y") (Lit $ N $ int2nat 4)
       $ LetIn (Var "p") (pairVar "x" "y")
       $ appRTo ("plus", "p") "return"
       $ Var "return"
 --
-test4 = prelude
-      $ LetIn (Var "x") (Lit $ N $ int2nat 9)
-      $ LetIn (Var "y") (Lit $ N $ int2nat 3)
-      $ LetIn (Var "p") (pairVar "x" "y")
-      $ appRTo ("plus", "p") "return"
-      $ Var "return"
+test41 = LetIn (Var "x") (Lit $ N $ int2nat 1)
+       $ LetIn (Var "p") (pairVar "x" "x")
+       $ Var "p"
 --
-test5 = LetIn (Var "x") (Lit $ N $ int2nat 1)
-      $ LetIn (Var "y") (Lit $ N $ int2nat 9)
+test42 = LetIn (Var "x") (Lit $ N $ int2nat 1)
+       $ BanIn (BVar "y") (Var "x")
+       $ LetIn (Var "p") (Pair (BVar "y") (BVar "y"))
+       $ Var "p"
+--
+test43 = LetIn (Var "x") (Lit $ N $ int2nat 1)
+       $ BanIn (BVar "x") (Var "x")
+       $ LetIn (Var "p") (Pair (BVar "x") (BVar "x"))
+       $ Var "p"
+--
+test5 = LetIn (Var "x") (Lit $ N $ int2nat 3)
+      $ LetIn (Var "y") (Lit $ N $ int2nat 2)
       $ LetIn (Var "p") (pairVar "x" "y")
       $ Var "p"
 --
 test6 = LetIn (Var "x") (Lit $ N $ int2nat 1)
       $ Var "x"
--- names :: [String] -> [String]
--- names xs = xs ++ zipWith (++) (smalloop xs) (foo xs (names xs))
---
--- foo :: [a] -> [b] -> [b]
--- foo xs ys = concat $ map (toEnough (length xs)) ys
---
--- toEnough :: Int -> a -> [a]
--- toEnough n = take n . repeat
---
--- smalloop xs = xs ++ smalloop xs
---
--- -- [ map (c ++) nns | c <- nns0]
 
 
 

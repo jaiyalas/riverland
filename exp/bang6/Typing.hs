@@ -26,36 +26,51 @@ typeof (Suc e) = do
     t <- typeof e
     case t of
         TNat -> return TNat
-        nott ->
-            throwError $
-            MismatchType $
-            TypeError (Suc e) TNat nott
+        nott -> throwError $ MismatchType $ TypeError (Suc e) TNat nott
+--
 typeof (Pair e1 e2) = do
     ctx <- ask
+    -- ctx = ctxE1 ++ ctxLeft
     (ctxE1, ctxLeft) <- runExceptId $ splitCtxExpr e1 ctx
     v1 <- runCheckWith ctxE1 $ typeof e1
     v2 <- runCheckWith ctxLeft $ typeof e2
     return (TProd v1 v2)
+--
 typeof (Lam vn tyIn fbody tyOut) = do
-    -- | if there has no specified return type
-    -- | the following line is needed
-    -- tyOut <- local (insertL vn tyIn) (typeof fbody)
     return $ TFunc tyIn tyOut
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
--- typeof (LetIn (Pair e1 e2) e next) = ...
+typeof (LetIn (Pair e1 e2) e next) = do
+    ctx <- ask
+    (ctxE, ctxLeft) <- runExceptId $ splitCtxExpr e ctx
+    t <- runCheckWith ctxE $ typeof e
+    case t of
+        (TProd t1 t2) -> do
+            (x1, swX1) <- runExceptId $ deVar e1
+            (x2, swX2) <- runExceptId $ deVar e2
+            local
+                (\_ -> insertCtx fst swX2 (x2, t2) $ insertCtx fst swX1 (x1, t1) ctxLeft)
+                (typeof next)
+        otherwise -> throwError $ MismatchType $ TypeError e t (TProd TUnknown TUnknown)
 typeof (LetIn (Var name) e next) = do
-    v <- typeof e
-    local (insertL name v) (typeof next)
+    ctx <- ask
+    (ctxE, ctxLeft) <- runExceptId $ splitCtxExpr e ctx
+    v <- runCheckWith ctxE $ typeof e
+    local (\_ -> insertL name v ctxLeft) (typeof next)
 typeof (RecIn (BVar name) e next) = do
-    v <- typeof e
-    local (insertN name v) (typeof next)
+    ctx <- ask
+    (ctxE, ctxLeft) <- runExceptId $ splitCtxExpr e ctx
+    v <- runCheckWith ctxE $ typeof e
+    local (\_ -> insertN name v ctxLeft) (typeof next)
 typeof (BanIn (BVar vname) e next) = do
-    v <- typeof e
-    local (insertN vname v) (typeof next)
+    ctx <- ask
+    (ctxE, ctxLeft) <- runExceptId $ splitCtxExpr e ctx
+    v <- runCheckWith ctxE $ typeof e
+    local (\_ -> insertN vname v ctxLeft) (typeof next)
 typeof (DupIn (Pair (Var vn1) (Var vn2)) e next) = do
-    traceCtx "DupIn"
-    v <- typeof e
-    local (insertL vn2 v . insertL vn1 v) (typeof next)
+    ctx <- ask
+    (ctxE, ctxLeft) <- runExceptId $ splitCtxExpr e ctx
+    v <- runCheckWith ctxE $ typeof e
+    local (\_ -> insertN vn1 v $ insertN vn1 v ctxLeft) (typeof next)
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- 可以接受 lambda 來做為 application 的格式
 -- -- Lambda 的 parameter 限定是 linear (所以只能給 VName)
@@ -104,7 +119,9 @@ typeof e = throwError $ MismatchSynt $ UnknownSyntaxError e
 --
 --
 
+tracePrint :: String -> Check ()
 tracePrint = (flip trace) (return ())
+
 traceCtx str = do
     ctx <- ask
     tracePrint $ str ++ "[CTX: "++(show ctx)++"]"

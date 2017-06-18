@@ -1,6 +1,7 @@
 # todo
 
 + [ ] remove tyOut from Lam
+    + fail
 + [x] split for ctx of linear logic
     + [Ctx.hs]
         + [x] `popout :: VName -> Ctx -> Except SomeError (Val, Ctx)`

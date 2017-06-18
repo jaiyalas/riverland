@@ -78,6 +78,7 @@ popCtx :: (Eq k, Show k)
        -> Maybe (v, Ctx k v)
 popCtx Normal ctx@(Ctx ls ns) k =
     lookupN ctx k >>=
+        -- pop from normal context == lookup
         (\v -> return (v, Ctx ls ns))
         -- (\v -> return (v, Ctx ls (filter ((/= k) . fst) ns)))
 popCtx Linear ctx@(Ctx ls ns) k =
