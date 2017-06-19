@@ -1,14 +1,14 @@
 # todo
 
 + [ ] remove tyOut from Lam
-    + fail
+    + failed -- QQ
 + [x] split for ctx of linear logic
     + [Ctx.hs]
         + [x] `popout :: VName -> Ctx -> Except SomeError (Val, Ctx)`
         + [x] `splitCtx :: [VName] -> [VName] -> Ctx -> Except SomeError (Ctx, Ctx)`
     + [Expr.hs]
         + [x] `freeVar :: Expr -> [VName]`
-+ [ ] type checking with ctx split and check
++ [x] type checking with ctx split and check
 + [ ] re-implement except/error
 + [ ] rval
 + [ ] translator for Expr to BiGuL(?)

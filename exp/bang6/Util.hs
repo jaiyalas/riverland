@@ -29,11 +29,6 @@ lookupCtx' sw ctx x =
         Just v -> return v
         Nothing -> throwError $ NotFound $ CtxExhausted sw x
 --
--- popCtx :: (Eq k, Show k)
---        => CtxSwitch
---        -> Ctx k v
---        -> k
---        -> Maybe (v, Ctx k v)
 popCtx' :: CtxSwitch -> Ctx VName v -> VName
         -> Except ErrorMsg  (v, Ctx VName v)
 popCtx' sw ctx vn =
@@ -45,7 +40,13 @@ deVar :: Expr -> Except ErrorMsg (VName, CtxSwitch)
 deVar (Var n) = return (n, Linear)
 deVar (BVar n) = return (n, Normal)
 deVar e = throwError $ MismatchSynt $ NotAVariable e
---
+
+splitCtxExpr' :: (Monad n, Eq v)
+              => Expr
+              -> Ctx VName v
+              -> ExceptT ErrorMsg n (Ctx VName v, Ctx VName v)
+splitCtxExpr' e = runExceptId . splitCtxExpr e
+
 splitCtxExpr :: Eq v => Expr -> Ctx VName v -> Except ErrorMsg (Ctx VName v, Ctx VName v)
 splitCtxExpr e ctx =
     let (fvsl, fvsn) = (freeVar e)
