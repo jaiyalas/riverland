@@ -1,9 +1,31 @@
-module Ctx where
+module Ctx
+    ( -- * type
+      Env(..)
+    , Ctx(..)
+    , CtxSwitch(..)
+    -- * adding elements
+    , consL
+    , consN
+    , insertCtx
+    , insertL
+    , insertN
+    -- * querying elements
+    , lookupCtx
+    , lookupL
+    , lookupN
+    -- * poping element out
+    , popCtx
+    -- * spliting ctx into two
+    , splitCtx
+    -- * internal error msg
+    , InternalErrorCtx(..)
+    ) where
 --
 import Control.Monad.Except
 --
+import Data.Either (either)
 import Data.List (lookup)
-
+import Data.Bifunctor
 --
 --
 type Env a b = [(a,b)]
@@ -26,37 +48,18 @@ data Ctx a b = Ctx { getLEnv :: (Env a b)
 --
 data CtxSwitch = Normal | Linear deriving (Show, Eq)
 --
---
 instance Eq a => Monoid (Ctx a b) where
     mempty = Ctx [] []
     mappend (Ctx xs ys) (Ctx xs2 ys2) =
         Ctx (xs +>+ xs2) (ys +>+ ys2)
---
+instance Bifunctor (Ctx k) where
+    bimap f g (Ctx xs ys) = Ctx (f xs) (y ys)
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 consL :: (a,b) -> Ctx a b -> Ctx a b
 consL vv (Ctx lis nls) = (Ctx (vv : lis) nls)
 consN :: (a,b) -> Ctx a b -> Ctx a b
 consN vv (Ctx lis nls) = (Ctx lis (vv : nls))
 --
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-lookupCtx :: (Eq k, Show k) => CtxSwitch -> Ctx k v -> k -> Maybe v
-lookupCtx Linear (Ctx ((v2, val) : lis) nls) v1
-    | v1 == v2 = return val
-    | otherwise = lookupCtx Linear (Ctx lis nls) v1
-lookupCtx Normal (Ctx lis ((v2, val) : nls)) v1
-    | v1 == v2 = return val
-    | otherwise = lookupCtx Normal (Ctx lis nls) v1
-lookupCtx Linear (Ctx [] _) v1 = Nothing
-lookupCtx Normal (Ctx _ []) v1 = Nothing
---
-lookupL :: (Eq k, Show k) => Ctx k v -> k -> Maybe v
-lookupL = lookupCtx Linear
-lookupN :: (Eq k, Show k) => Ctx k v -> k -> Maybe v
-lookupN = lookupCtx Normal
---
-
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 insertCtx :: Eq a => ((c,b) -> a) -> CtxSwitch -> (c,b) -> Ctx a b -> Ctx a b
 insertCtx f Linear x@(c,b) (Ctx ls ns) = Ctx
     ((f x, b) : filter ((/= (f x)) . fst) ls) ns
@@ -67,70 +70,82 @@ insertL :: Eq a => a -> b -> Ctx a b -> Ctx a b
 insertL x y = insertCtx fst Linear (x, y)
 insertN :: Eq a => a -> b -> Ctx a b -> Ctx a b
 insertN x y = insertCtx fst Normal (x, y)
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+lookupCtx :: (Eq k, Show k)
+          => CtxSwitch -> Ctx k v -> k
+          -> Except (CtxInternalError k) v
+lookupCtx Linear (Ctx ((v2, val) : lis) nls) v1
+    | v1 == v2 = return val
+    | otherwise = lookupCtx Linear (Ctx lis nls) v1
+lookupCtx Normal (Ctx lis ((v2, val) : nls)) v1
+    | v1 == v2 = return val
+    | otherwise = lookupCtx Normal (Ctx lis nls) v1
+lookupCtx Linear (Ctx [] _) v1 = inErrCtxLookup v1
+lookupCtx Normal (Ctx _ []) v1 = inErrCtxLookup v1
 --
-
-
+lookupL :: (Eq k, Show k)
+        => Ctx k v -> k
+        -> Except (CtxInternalError k) v
+lookupL = lookupCtx Linear
+lookupN :: (Eq k, Show k)
+        => Ctx k v -> k
+        -> Except (CtxInternalError k) v
+lookupN = lookupCtx Normal
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 popCtx :: (Eq k, Show k)
-       => CtxSwitch
-       -> Ctx k v
-       -> k
-       -> Maybe (v, Ctx k v)
-popCtx Normal ctx@(Ctx ls ns) k =
-    lookupN ctx k >>=
-        -- pop from normal context == lookup
-        (\v -> return (v, Ctx ls ns))
-        -- (\v -> return (v, Ctx ls (filter ((/= k) . fst) ns)))
-popCtx Linear ctx@(Ctx ls ns) k =
-    lookupL ctx k >>=
-        (\v -> return (v, Ctx (filter ((/= k) . fst) ls) ns))
---
-splitEnv :: Eq k
-         => [k] -- ^ targeting names
-         -> Env k v
-         -> Except (CtxInternalError k) ( Env k v
-                                        , Env k v)
-splitEnv ks xs = splitEnv' ks xs mempty
---
-splitEnv' :: Eq k => [k]   -- ^ targeting key
-                -> Env k v -- ^ input env
-                -> Env k v -- ^ (accumulating) filtered env
-                -> Except (CtxInternalError k) ( Env k v
-                                               , Env k v)
+       => CtxSwitch -> Ctx k v -> k
+       -> Except (CtxInternalError k) (v, Ctx k v)
+popCtx Normal ctx k =
+    mapExcept
+        (either (const (InErrCtxPopout k))
+                (\x->(x, ctx)))
+        (lookupN ctx k)
+popCtx Linear ctx k =
+    mapExcept
+        (either (const (InErrCtxPopout k))
+                (\x->(x, bimap noK id ctx)))
+        (lookupN ctx k)
+    where noK = filter ((/= k) . fst)
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+-- | underlying environment spliting
+splitEnv' :: Eq k
+          => [k]   -- ^ targeting key
+          -> Env k v -- ^ input env
+          -> Env k v -- ^ (accumulating) filtered env
+          -> Except (CtxInternalError k) (Env k v, Env k v)
 splitEnv' [] xs ys = return (xs, ys)
 splitEnv' (k:ks) xs ys = maybe
-    (throwError (CtxError k))
-    (\v -> splitEnv' ks (filter ((/= k).fst) xs) ((k,v):ys))
+    (inErrEnvSplit k)
+    (\v -> bimap (filter ((/= k) . fst)) ((k, v):) (splitEnv' ks xs ys))
     (lookup k xs)
+splitEnv :: Eq k
+         => [k] -> Env k v
+         -> Except (CtxInternalError k) ( Env k v, Env k v)
+splitEnv ks xs = splitEnv' ks xs mempty
 --
 splitCtx :: Eq k
          => [k] -- ^ linear
          -> Ctx k v
-         -> Except (CtxInternalError k) ( Ctx k v   -- ^ selected
-                                        , Ctx k v ) -- ^ remains
-splitCtx lns (Ctx ls ns) = do
-    (leftLEnv, selectedLEnv) <- splitEnv lns ls
-    return $ (Ctx selectedLEnv ns, Ctx leftLEnv ns)
---
--- splitCtx :: Eq k
---          => [k] -- ^ linear
---          -> [k] -- ^ normal
---          -> Ctx k v
---          -> Except (CtxInternalError k) ( Ctx k v   -- ^ selected
---                                         , Ctx k v ) -- ^ remains
--- splitCtx lns nns (Ctx ls ns) = do
---     (leftLEnv, selectedLEnv) <- splitEnv lns ls
---     (leftNEnv, selectedNEnv) <- splitEnv nns ns
---     return $ (Ctx selectedLEnv selectedNEnv, Ctx leftLEnv leftNEnv)
---
-data CtxInternalError k
-    = CtxError k
+         -> Except (CtxInternalError k)
+                ( Ctx k v   -- ^ selected
+                , Ctx k v ) -- ^ remains
+splitCtx lns (Ctx ls ns) =
+    mapExcept (either id (bimap ((flip Ctx) ns) ((flip Ctx) ns)))
+              (splitEnv lns ls)
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+data InternalErrorCtx k
+    = InErrCtxSplit k
+    | InErrEnvSplit k
+    | InErrCtxLookup k
+    | InErrCtxPopout k
     deriving (Show, Eq)
-
-
-
-
-
-
-
+--
+inErrCtxSplit :: k -> Except (CtxInternalError k) a
+inErrCtxSplit k  = throwError $ InErrCtxSplit  k
+inErrEnvSplit :: k -> Except (CtxInternalError k) a
+inErrEnvSplit k  = throwError $ InErrEnvSplit  k
+inErrCtxLookup :: k -> Except (CtxInternalError k) a
+inErrCtxLookup k = throwError $ InErrCtxLookup k
+inErrCtxPopout :: k -> Except (CtxInternalError k) a
+inErrCtxPopout k = throwError $ InErrCtxPopout k
 --

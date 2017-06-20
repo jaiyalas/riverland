@@ -20,21 +20,7 @@ runExceptReaderWith ctx = mapExceptT (return . (flip runReader) ctx)
 runCheckWith :: Ctx VName v -> Check v -> Check v
 runCheckWith = runExceptReaderWith
 --
-lookupCtx' :: CtxSwitch
-           -> Ctx VName a
-           -> VName
-           -> Except ErrorMsg a
-lookupCtx' sw ctx x =
-    case lookupCtx sw ctx x of
-        Just v -> return v
-        Nothing -> throwError $ NotFound $ CtxExhausted sw x
---
-popCtx' :: CtxSwitch -> Ctx VName v -> VName
-        -> Except ErrorMsg  (v, Ctx VName v)
-popCtx' sw ctx vn =
-    case popCtx sw ctx vn of
-        Just x -> return x
-        Nothing -> throwError $ NotFound $ CtxExhausted sw vn
+
 
 deVar :: Expr -> Except ErrorMsg (VName, CtxSwitch)
 deVar (Var n) = return (n, Linear)
