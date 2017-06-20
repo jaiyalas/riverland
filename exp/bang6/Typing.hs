@@ -33,10 +33,13 @@ typeof (Pair e1 e2) = do
     -- ctx = ctxE1 ++ ctxLeft
     (ctxE1, ctxLeft) <- splitCtxExpr' e1 ctx
     v1 <- runCheckWith ctxE1 (typeof e1)
-    v2 <- runCheckWith ctxLeft (typeof e2)
+    -- v2 <- runCheckWith ctxLeft (typeof e2)
+    v2 <- local (\_ -> ctxLeft) (typeof e2)
     return (TProd v1 v2)
 --
 typeof (Lam vn tyIn fbody tyOut) = do
+    -- ctx <-
+    -- | type body
     return $ TFunc tyIn tyOut
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- | right now, this MTerm is limited as (Pair var1 var2)
@@ -50,7 +53,7 @@ typeof (LetIn (Pair e1 e2) e next) = do
         (TProd t1 t2) -> do
             (x1, swX1) <- runExceptId $ deVar e1
             (x2, swX2) <- runExceptId $ deVar e2
-            runCheckWith (insertCtx fst swX2 (x2, t2) $ insertCtx fst swX1 (x1, t1) ctxLeft)
+            local (\_ -> insertCtx fst swX2 (x2, t2) $ insertCtx fst swX1 (x1, t1) ctxLeft)
                 (typeof next)
         otherwise -> throwError $ MismatchType $ TypeError e t (TProd TUnknown TUnknown)
 typeof (LetIn (Var name) e next) = do

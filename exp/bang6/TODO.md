@@ -1,5 +1,8 @@
 # todo
 
++ [ ] [local/runCheckWith]
++ [ ] odd plus
++ [ ] func for: value in range?
 + [ ] remove tyOut from Lam
     + failed -- QQ
 + [x] split for ctx of linear logic
