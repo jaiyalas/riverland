@@ -5,6 +5,10 @@ import Ctx
 
 --
 
+-- CtxInternalError
+
+
+
 
 
 data ErrorMsg
@@ -22,13 +26,6 @@ data TypeError
     | TypeInconsist Typ Typ
     | MatchInconsist [Typ]
     deriving (Show, Eq)
---
--- instance Show TypeError where
---     show (TypeError e it ot) =
---         "["++ (show e) ++"]: "++(show it)++" does not match "++(show ot)
---     show (ValueTypeUnknown v) = "Value "++(show v)++" has unknown type."
---     show (NotAFunctionType e t) = "Expression "++(show e)++" has type "
---         ++(show t)++" which is not a function"
 --
 data CtxError
     = CtxExhausted CtxSwitch VName
