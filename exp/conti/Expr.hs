@@ -1,4 +1,4 @@
-module Ctx where
+module Expr where
 --
 import Data.List (find)
 import Data.Maybe (fromJust)
@@ -13,14 +13,14 @@ data Val
     = N Int
     | B Bool
     | Pr Val Val
-    | Clos Name Ty Term Ty Environment
+    | Clos Name Typ Term Typ (DualEnv Val)
     deriving (Show, Eq)
 --
-data Ty
+data Typ
     = TNat
     | TBool
-    | TProd Ty Ty
-    | TFun Ty Ty
+    | TProd Typ Typ
+    | TFun Typ Typ
     deriving (Show, Eq)
 --
 data Case = (:~>) MTerm Term deriving (Show, Eq)
@@ -35,7 +35,8 @@ data Term
     --
     | Succ Term
     | Pair Term Term
-    | Abs Name Ty Term Ty
+    | Abs Name Typ Term Typ
+    | App (Term, Term)
     --
     | LetIn MTerm Term Term
     | RecIn MTerm Term Term
@@ -49,83 +50,104 @@ data Term
     deriving (Show, Eq)
     --
 --
-type ComptVal = Reader Environment Val
+type Compt a = Reader (DualEnv a) a
 --
-type Cont = ComptVal -> ComptVal
+type Cont = Compt Val -> Compt Val
 --
-eval :: Term -> Cont -> ComptVal
-eval (Lit v) k = k $ return v
-eval (Var name) k =
+eval1 :: Term -> Cont -> Compt Val
+eval1 (Lit v) k = k $ return v
+eval1 (Var name) k =
     k $ asks (fromJust . peekByKey name . {-traceShowId .-} snd)
-eval (BVar name) k =
+eval1 (BVar name) k =
     k $ asks (fromJust . peekByKey name . fst)
-eval (Succ t) k =
-    eval t  (>>= \(N n) ->
+eval1 (Succ t) k =
+    eval1 t  (>>= \(N n) ->
         k $ return $ N $ (n + 1)
     )
-eval (Pair t1 t2) k =
-    eval t1 (>>= \v1 ->
-        eval t2 (>>= \v2 ->
+eval1 (Pair t1 t2) k =
+    eval1 t1 (>>= \v1 ->
+        eval1 t2 (>>= \v2 ->
             k $ return $ Pr v1 v2
         )
     )
-eval (Abs name tyIn func tyOut) k =
+eval1 (Abs name tyIn func tyOut) k =
     k $ asks (Clos name tyIn func tyOut)
+
+-- ##
+eval1 (App (funT, argT)) k = do
+    (Clos pname tyIn fbody tyOut localEnv) <- eval1 funT id
+    argv <- eval1 argT id
+    k $ local (const $ (pname, argv) `consL` localEnv) (eval1 fbody id)
+-- ##
+-- eval1 (App (funT, argT)) k = do
+--     (Clos pname tyIn fbody tyOut localEnv) <- eval1 funT id
+--     argv <- eval1 argT id
+--     local (const $ (pname, argv) `consL` localEnv) (eval1 fbody k)
+-- ##
+-- eval1 (App (funT, argT)) k =
+--     eval1 funT (>>= \(Clos pname tyIn fbody tyOut localEnv) ->
+--         eval1 argT (>>= \argv ->
+--             local (const $ (pname, argv) `consL` localEnv) (eval1 fbody k)
+--         )
+--     )
 --
-eval (LetIn (Var name) t next) k =
-    eval t (>>= \v ->
-        local (consL (name, v)) (eval next k)
+eval1 (LetIn (Var name) t next) k =
+    eval1 t (>>= \v ->
+        local (consL (name, v)) (eval1 next k)
     )
-eval (LetIn (Pair t1 t2) t next) k =
-    eval t (>>= \(Pr v1 v2) ->
-        eval (LetIn t1 (Lit v1) $ LetIn t2 (Lit v2) next) k
+eval1 (LetIn (Pair t1 t2) t next) k =
+    eval1 t (>>= \(Pr v1 v2) ->
+        eval1 (LetIn t1 (Lit v1) $ LetIn t2 (Lit v2) next) k
     )
 --
-eval (RecIn (BVar name) t next) k =
-    eval t (>>= \(Clos pname tyIn fbody tyOut localEnv) ->
+eval1 (RecIn (BVar name) t next) k =
+    eval1 t (>>= \(Clos pname tyIn fbody tyOut localEnv) ->
         let funR = Clos pname tyIn fbody tyOut ((name, funR) `consN` localEnv)
-        in local (consN (name, funR)) (eval next k)
+        in local (consN (name, funR)) (eval1 next k)
     )
-eval (BanIn (BVar name) t next) k =
-    eval t (>>= \v ->
-        local (consN (name, v)) (eval next k)
+eval1 (BanIn (BVar name) t next) k =
+    eval1 t (>>= \v ->
+        local (consN (name, v)) (eval1 next k)
     )
-eval (DupIn (Pair (Var name1) (Var name2)) t next) k =
-    eval t (>>= \v ->
-        eval (LetIn (Var name1) (Lit v) $ LetIn (Var name2) (Lit v) next) k
+eval1 (DupIn (Pair (Var name1) (Var name2)) t next) k =
+    eval1 t (>>= \v ->
+        eval1 (LetIn (Var name1) (Lit v) $ LetIn (Var name2) (Lit v) next) k
     )
 --
-eval (AppIn (Var name) (Abs pname tyIn func tyOut, argT) next) k =
-    eval argT (>>= \argv ->
-        local (consL (pname, argv)) (eval func (>>= \resv ->
-            local (consL (name, resv)) (eval next k))
+eval1 (AppIn var (funT, argT) next) k =
+    eval1 (LetIn var (App (funT, argT)) next) k
+eval1 (AppIn (Var name) (Abs pname tyIn func tyOut, argT) next) k =
+    eval1 argT (>>= \argv ->
+        local (consL (pname, argv)) (eval1 func (>>= \resv ->
+            local (consL (name, resv)) (eval1 next k))
         )
     )
-eval (AppIn (Var name) (funT, argT) next) k = do
-    (Clos pname tyIn fbody tyOut localEnv) <- eval funT id
-    argv <- eval argT id
-    resv <- local (const $ (pname, argv) `consL` localEnv) (eval fbody id)
-    local (consL (name, resv)) (eval next k)
-
--- eval (AppIn (Var name) (funT, argT) next) k =
---     eval funT (>>= \(Clos pname tyIn fbody tyOut localEnv) ->
---         eval argT (>>= \argv ->
---             local (const $ (pname, argv) `consL` localEnv) (eval fbody (>>= \resv ->
---                 local (consL (name, resv)) (eval next k))
+-- ##
+-- eval1 (AppIn (Var name) (funT, argT) next) k = do
+--     (Clos pname tyIn fbody tyOut localEnv) <- eval1 funT id
+--     argv <- eval1 argT id
+--     resv <- local (const $ (pname, argv) `consL` localEnv) (eval1 fbody id)
+--     local (consL (name, resv)) (eval1 next k)
+-- ## cannot restore env in the last local-invoking
+-- eval1 (AppIn (Var name) (funT, argT) next) k =
+--     eval1 funT (>>= \(Clos pname tyIn fbody tyOut localEnv) ->
+--         eval1 argT (>>= \argv ->
+--             local (const $ (pname, argv) `consL` localEnv) (eval1 fbody (>>= \resv ->
+--                 local (consL (name, resv)) (eval1 next k))
 --             )
 --         )
 --     )
 --
-eval (Match vt cs) k =
-    eval vt (>>= \v ->
+eval1 (Match vt cs) k =
+    eval1 vt (>>= \v ->
         let ((nns, nls), next) = fromJust $ findMatched v cs
-        in local (bimap (nns +>+) (nls +>+)) (eval next k)
+        in local (bimap (nns +>+) (nls +>+)) (eval1 next k)
     )
-eval (MatEq vt caseEq caseNEq) k =
-    eval vt (>>= \(Pr v1 v2) ->
+eval1 (MatEq vt caseEq caseNEq) k =
+    eval1 vt (>>= \(Pr v1 v2) ->
         if v1 == v2
-            then eval (Match (Lit v1) [caseEq]) k
-            else eval (Match (Pair (Lit v1) (Lit v2)) [caseNEq]) k
+            then eval1 (Match (Lit v1) [caseEq]) k
+            else eval1 (Match (Pair (Lit v1) (Lit v2)) [caseNEq]) k
     )
 --
 
@@ -135,12 +157,12 @@ eval (MatEq vt caseEq caseNEq) k =
 
 
 --
-type Environment =
-    ( Env Name Val  -- ^ normal
-    , Env Name Val) -- ^ linear
-consL :: (Name, Val) ->  Environment -> Environment
+type DualEnv v =
+    ( Env Name v  -- ^ normal
+    , Env Name v) -- ^ linear
+consL :: (Name, v) -> (DualEnv v) -> (DualEnv v)
 consL nv = bimap id ([nv] +>+)
-consN :: (Name, Val) ->  Environment -> Environment
+consN :: (Name, v) -> (DualEnv v) -> (DualEnv v)
 consN nv = bimap ([nv] +>+) id
 --
 type Env k v = [(k, v)]
@@ -171,7 +193,7 @@ popByKey  k = bimap (peekByKey k) (rmByKey k) . dup
 
 
 
-matching :: Val -> Term -> Maybe Environment
+matching :: Val -> Term -> Maybe (DualEnv Val)
 matching v (Var vname) =
     return $ (vname, v) `consL` mempty
 matching v (BVar vname) =
@@ -190,7 +212,7 @@ matching (Pr v1 v2) (Pair e1 e2) = do
     return $ env1 `mappend` env2
 matching v e = Nothing
 --
-findMatched :: Val -> [Case] -> Maybe (Environment, Term)
+findMatched :: Val -> [Case] -> Maybe (DualEnv Val, Term)
 findMatched v (mat :~> next : cs) =
     maybe (findMatched v cs) (\ctx -> return (ctx, next)) $ matching v mat
 findMatched v [] = Nothing
@@ -203,7 +225,7 @@ findMatched v [] = Nothing
 
 --
 run :: Term -> Val
-run e = runReader (eval e id) ([], [])
+run e = runReader (eval1 e id) ([], [])
 --
 appRTo :: (Name, Name) -> Name -> Term -> Term
 appRTo (f, x) y e = AppIn (Var y) (BVar f, Var x) e
