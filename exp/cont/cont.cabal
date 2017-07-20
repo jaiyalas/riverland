@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules: Cont
                  , Expr
+                 , Free
                  , Func
                  , Eval
                  , Rval

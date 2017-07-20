@@ -1,6 +1,7 @@
 module Typing where
 --
 import Expr
+import Free
 --
 import Data.List (find)
 import Data.Maybe (fromJust)
@@ -10,11 +11,42 @@ import Control.Monad.Reader
 import Debug.Trace
 --
 typeof0 :: Term -> Compt Typ
+
+-- ΓΔ
+
 typeof0 (Lit v) = return $ fromJust $ typeofVal v
 typeof0 (Var  name) = asks (fromJust . peekByKey name . snd)
 typeof0 (BVar name) = asks (fromJust . peekByKey name . fst)
-
-
+--
+typeof0 (Succ t) = (\TNat -> TNat) <$> (typeof0 t)
+typeof0 (Pair t1 t2) = do
+    (ns, ls) <- ask
+    let (lsT1, lsT2) = splitEnvWithTerms (t1, t2) ls
+    ty1 <- local (const (ns, lsT1)) (typeof0 t1)
+    ty2 <- local (const (ns, lsT2)) (typeof0 t2)
+    return (TProd ty1 ty2)
+typeof0 (Abs name inTyp fbody outTyp) =
+    return $ TFun inTyp outTy
+typeof0 (App (funT, argT)) = do
+    (TFun inTy outTy) <- typeof0 funT
+    argTy <- typeof0 argT
+    if inTy == argTy
+        then return outTy
+        else error "app mismatch"
+--
+typeof0 (LetIn (Var name) t next) = do
+    tt <- typeof0 t
+    local (consL (name, tt)) (typeof0 next)
+typeof0 (LetIn (Pair (Var name1) (Var name2)) t next) = do
+    (TProd t1 t2) <- typeof0 t
+    local (consL (name2, t2) . consL (name1, t1)) (typeof0 next)
+typeof0 (RecIn var t next) = undefined
+typeof0 (BanIn var t next) = undefined
+typeof0 (DupIn var t next) = undefined
+-- AppIn MTerm (Term, Term) Term
+--
+typeof0 (Match var cs) = undefined
+typeof0 (MatEq var caseEq caseNEq) = undefined
 
 
 

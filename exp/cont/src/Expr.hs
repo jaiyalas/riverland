@@ -41,7 +41,7 @@ data Term
     | RecIn MTerm Term Term
     | BanIn MTerm Term Term
     | DupIn MTerm Term Term
-    | AppIn MTerm (Term, Term) Term
+    | AppIn MTerm (Term, Term) Term --
     --
     | Match VTerm [Case]
     | MatEq VTerm Case Case
@@ -52,6 +52,7 @@ data Term
 type Compt a = Reader (DualEnv a) a
 --
 type Cont = Compt Val -> Compt Val
+--
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 --
@@ -76,6 +77,8 @@ type Env k v = [(k, v)]
     | elem k (map fst ys) = xs +<+ ys
     | otherwise = (k,v) : xs +<+ ys
 [] +<+ ys = ys
+--
+
 --
 peekByKey :: Eq k => k -> Env k v -> Maybe v
 rmByKey   :: Eq k => k -> Env k v -> Env k v

@@ -57,3 +57,42 @@ test1 = succExpr $ plusExpr
      $ AppIn (Var "z2") (BVar "succ", Var "y")
      $ AppIn (Var "r") (BVar "plus", Pair (Var "z1") (Var "z2"))
      $ (Var "r")
+--
+test2 :: Term
+test2 = rt
+    $ App (localBanId, Lit $ N 5)
+test2' :: Term
+test2' = rt
+    $ LetIn (Var "foo") localBanId
+    $ App (Var "foo", Lit $ N 5)
+--
+test3 :: Term
+test3 = rt
+    $ succExpr
+    $ LetIn (Var "x") (Lit $ N 5)
+    $ App (BVar "succ", Var "x")
+--
+test4 :: Term
+test4 = plusExpr
+    $ LetIn (Var "a") (Lit $ N 5)
+    $ LetIn (Var "b") (Lit $ N 50)
+    $ BanIn (BVar "!b") (Var "b")
+    $ AppIn (Var "out") (BVar "plus", Pair (Var "a") (BVar "!b"))
+    $ (Var "out")
+--
+test5 :: Term
+test5 = id
+    $ LetIn (Var "b") (Lit $ N 15)
+    $ AppIn (Var "out")
+        ( Abs "#0" TNat (BanIn (BVar "x") (Var "#0") (Lit $ N 9)) TNat
+        , Var "b")
+    $ (Var "out")
+--
+localBanId :: Term
+localBanId = Abs "#0" TNat (BanIn (BVar "x") (Var "#0") (BVar "x")) TNat
+--
+rt :: Term -> Term
+rt t = rtName "#return" t
+rtName :: Name -> Term -> Term
+rtName name t = LetIn (Var name) t (Var name)
+--
