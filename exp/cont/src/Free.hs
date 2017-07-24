@@ -5,31 +5,39 @@ import Control.Monad
 import Data.Bifunctor
 import Data.Maybe (maybe)
 --
-splitEnvWithTerms :: Eq v => (Term, Term) -> Env Name v -> (Env Name v, Env Name v)
-splitEnvWithTerms (t1, t2) ls =
+import Debug.Trace
+--
+splitEnvWithTerm :: (Eq v, Show v)
+                  => Term -> Env Name v -> (Env Name v, Env Name v)
+splitEnvWithTerm t ls =
+    let (lsLeft, lst) = splitEnv (snd $ freeVar t) ls
+    in (lst, lsLeft)
+
+splitEnvWith2Terms :: (Eq v, Show v)
+                  => (Term, Term) -> Env Name v -> (Env Name v, Env Name v)
+splitEnvWith2Terms (t1, t2) ls =
     let fvT1 = snd $ freeVar t1
         fvT2 = snd $ freeVar t2
-        (lsLeft, lsT1) = splitEnv fvT1 ls
+        (lsLeft, lsT1)  = splitEnv fvT1 ls
         (lsLeft', lsT2) = splitEnv fvT2 lsLeft
     in if lsLeft' == []
         then (lsT1, lsT2)
-        else error "dirty splitEnvWithTerms"
-
+        else error "dirty(splitEnvWithTerms)"
 --
-subDEnv :: Term -> DualEnv v ->  DualEnv v
+subDEnv :: (Eq v, Show v) => Term -> DualEnv v ->  DualEnv v
 subDEnv t (ns,ls) =
     -- normal nev remains intact
     ( ns
     -- sub linear nev
     , snd $ splitEnv (snd $ freeVar t) ls)
 --
-splitEnv :: Eq k
+splitEnv :: (Eq k, Show k, Show v)
          => [k] -- ^ targeting key
          -> Env k v -- ^ input env
          -> (Env k v, Env k v)
 splitEnv ks xs = splitEnv' ks xs mempty
 --
-splitEnv' :: Eq k
+splitEnv' :: (Eq k, Show k, Show v)
           => [k]   -- ^ targeting key
           -> Env k v -- ^ input env
           -> Env k v -- ^ (accumulating) filtered env

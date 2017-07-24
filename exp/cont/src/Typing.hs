@@ -11,57 +11,166 @@ import Control.Monad.Reader
 import Debug.Trace
 --
 typeof0 :: Term -> Compt Typ
-
--- ΓΔ
-
+--
 typeof0 (Lit v) = return $ fromJust $ typeofVal v
-typeof0 (Var  name) = asks (fromJust . peekByKey name . snd)
+typeof0 (Succ t) = (\TNat -> TNat) <$> (typeof0 t)
+--
+{-
+     ---------------  intuitionistic-ID
+     [x : A] ⊢ x : A
+-}
 typeof0 (BVar name) = asks (fromJust . peekByKey name . fst)
 --
-typeof0 (Succ t) = (\TNat -> TNat) <$> (typeof0 t)
+{-
+     ---------------  linear-Id
+     <x : A> ⊢ x : A
+-}
+typeof0 (Var  name) = asks (fromJust . peekByKey name . snd)
+    -- where is empty-checking ? XD
+--
+{-
+     Γ ⊢ t1 : A    Δ ⊢ t2 : B
+    ---------------------------  ⊗-I
+     Γ,Δ ⊢ (t1, t2) : A ⊗ B
+-}
 typeof0 (Pair t1 t2) = do
     (ns, ls) <- ask
-    let (lsT1, lsT2) = splitEnvWithTerms (t1, t2) ls
+    let (lsT1, lsT2) = splitEnvWithTerm t1 ls
     ty1 <- local (const (ns, lsT1)) (typeof0 t1)
     ty2 <- local (const (ns, lsT2)) (typeof0 t2)
     return (TProd ty1 ty2)
+--
+{-
+     Γ,<x : A> ⊢ t : B
+    --------------------  ⊸-I
+     Γ ⊢ λ x t : A ⊸ B
+-}
 typeof0 (Abs name inTyp fbody outTyp) =
-    return $ TFun inTyp outTy
+    return $ TFun inTyp outTyp
+--
+{-
+     Γ ⊢ f : A ⊸ B    Δ ⊢ t : A
+    -----------------------------  ⊸-E
+     Γ,Δ ⊢ f t : B
+-}
 typeof0 (App (funT, argT)) = do
     (TFun inTy outTy) <- typeof0 funT
     argTy <- typeof0 argT
     if inTy == argTy
         then return outTy
-        else error "app mismatch"
+        else error "mismatch(app)"
 --
-typeof0 (LetIn (Var name) t next) = do
-    tt <- typeof0 t
-    local (consL (name, tt)) (typeof0 next)
+typeof0 (AppIn (Var name) (func, arg) next) = do
+    (ns, ls) <- ask
+    let (lsArg, lsLeft) = splitEnvWithTerm arg ls
+    let (lsFun, lsNext) = splitEnvWithTerm func lsLeft
+    (TFun inTy outTy) <- local (const (ns, lsFun)) (typeof0 func)
+    argT <- local (const (ns, lsArg)) (typeof0 arg)
+    if argT == inTy
+        then local (const (ns, (name, outTy) : lsNext)) (typeof0 next)
+        else error "mismatch(appin)"
+--
+{-
+     Γ ⊢ t : A ⊗ B    Δ,<x : A>,<y : B> ⊢ e : C
+    ----------------------------------------------  ⊗-E
+     Γ, Δ ⊢ case t of (x,y) → e : C
+-}
 typeof0 (LetIn (Pair (Var name1) (Var name2)) t next) = do
-    (TProd t1 t2) <- typeof0 t
-    local (consL (name2, t2) . consL (name1, t1)) (typeof0 next)
-typeof0 (RecIn var t next) = undefined
-typeof0 (BanIn var t next) = undefined
-typeof0 (DupIn var t next) = undefined
--- AppIn MTerm (Term, Term) Term
+    (ns, ls) <- ask
+    let (ls4t, ls4next) = splitEnvWithTerm t ls
+    (TProd t1 t2) <- local (const (ns, ls4t)) (typeof0 t)
+    let newEnv = consL (name2, t2) $ consL (name1, t1) (ns, ls4next)
+    local (const newEnv) (typeof0 next)
 --
-typeof0 (Match var cs) = undefined
-typeof0 (MatEq var caseEq caseNEq) = undefined
+{-
+     Γ ⊢ t : A    Δ,<x : A> ⊢ e : B
+    -------------------------------- ???
+     Γ,Δ ⊢ let x = t in e : B
+-}
+typeof0 (LetIn (Var name) t next) = do
+    (ns, ls) <- ask
+    let (ls4t, ls4next) = splitEnvWithTerm t ls
+    tt <- local (const (ns, ls4t)) (typeof0 t)
+    let newEnv = consL (name, tt) (ns, ls4next)
+    local (const newEnv) (typeof0 next)
+--
+{-
+    [Γ] ⊢ t : A
+    ---------------  !-I
+    [Γ1] ⊢ !t : !A
+        ⋅
+        ⋅
+        ⋅
+    Γ ⊢ t : A            Δ,[!x : A] ⊢ e : B
+    ------------------------------------------
+    Γ,Δ ⊢ let !x = t in e : B
+-}
+typeof0 (BanIn (BVar name) t next) = do
+    (ns, ls) <- ask
+    let (ls4t, ls4next) = splitEnvWithTerm t ls
+    tt <- local (const (ns, ls4t)) (typeof0 t)
+    let newEnv = consN (name, tt) (ns, ls4next)
+    local (const newEnv) (typeof0 next)
+--
+typeof0 (RecIn (BVar name) t next) = do
+    (ns, ls) <- ask
+    let (ls4t, ls4next) = splitEnvWithTerm t ls
+    tt@(TFun inTy outTy) <- local (const (ns, ls4t)) (typeof0 t)
+    let newEnv = consN (name, tt) (ns, ls4next)
+    local (const newEnv) (typeof0 next)
+--
+{-
+    Γ ⊢ t : A    Δ,<x : A, y : A> ⊢ e : B
+    --------------------------------
+    Γ,Δ ⊢ let (x, y) = (t, t) in e : B
+-}
+typeof0 (DupIn (Pair (Var name1) (Var name2)) t next) = do
+    (ns,ls) <- ask
+    let (ls4t, ls4next) = splitEnvWithTerm t ls
+    tt <- local (const (ns, ls4t)) (typeof0 t)
+    let newEnv = consL (name2, tt) $ consL (name1, tt) (ns, ls4next)
+    local (const newEnv) (typeof0 next)
+--
+{-
 
+    ------------------------------------------
+    ⊢ let (x, y) = (t, t) in e : B
+-}
+typeof0 (Match t cases) = do
+    (ns, ls) <- ask
+    let (lsLeft, lst) = splitEnvWithTerm t ls
+    tt <- local (const (ns, lst)) (typeof0 t)
+    ts <- mapM (matTAll (ns, lsLeft) tt) cases
+    if (allSame ts)
+        then return (head ts)
+        else error "mismatch"
+--
+{-
 
+    --------------------
 
-
-
-typeof1 :: Term -> (Compt Typ -> Compt Typ) -> Compt Typ
-typeof1 = undefined
-
+-}
+typeof0 (MatEq t caseEq caseNEq) = do
+    (ns, ls) <- ask
+    let (lsLeft, lst) = splitEnvWithTerm t ls
+    tt <- local (const (ns, lst)) (typeof0 t)
+    case tt of
+        (TProd t1 t2) -> if t1 == t2
+            then matTAll (ns, lsLeft) t1 caseEq
+            else matTAll (ns, lsLeft) t2 caseNEq
+        otherwise -> error "mismatchEq"
+--
 
 
 
 
 
 --
-typeof = typeof0
+matTAll :: DualEnv Typ -> Typ -> Case -> Compt Typ
+matTAll (ns,ls) t (e :~> next) = do
+    let (nsNext, lsNext) = fromJust $ matchingT t e
+        newEnv = traceShowId $ (ns +>+ nsNext, ls +>+ lsNext)
+    local (const newEnv) (typeof next)
 --
 matchingT :: Typ -> Term -> Maybe (DualEnv Typ)
 matchingT t (Var vname)  = return $ (vname, t) `consL` mempty
@@ -77,12 +186,6 @@ matchingT (TProd t1 t2) (Pair e1 e2) = do
     return $ env1 `mappend` env2
 matchingT t e = Nothing
 --
-matTAll :: Typ -> Case -> Compt Typ
-matTAll t (e :~> next) = do
-    let newCtx = fromJust $ matchingT t e
-    -- local (mappend newCtx) (typeof next)
-    local (const newCtx) (typeof next)
---
 typeofVal :: Val -> Maybe Typ
 typeofVal (B _) = return TBool
 typeofVal (N _) = return TNat
@@ -91,3 +194,13 @@ typeofVal (Pr v1 v2) = do
     y <- typeofVal v2
     return $ TProd x y
 typeofVal v = Nothing
+--
+allSame :: Eq a => [a] -> Bool
+allSame [ ] = True
+allSame [ a ] = True
+allSame (a : b : xs) = a == b && allSame (b : xs)
+--
+typeof1 :: Term -> (Compt Typ -> Compt Typ) -> Compt Typ
+typeof1 = undefined
+--
+typeof = typeof0

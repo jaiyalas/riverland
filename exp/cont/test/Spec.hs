@@ -7,13 +7,15 @@ import Free
 --
 main :: IO ()
 main = do
-    tAppAbs
-    tFree
-    -- testEnvUniqueness
+    tAppAbs    
+    tType
+    -- tFree
 --
 tAppAbs :: IO ()
 tAppAbs = hspec $ do
     describe "[APPLICATION]" $ do
+        it "[test1] \"App\" lambda function " $
+            run test1 `shouldBe` (Pr (N 2) (N 5))
         it "[test2] \"App\" lambda function " $
             run test2 `shouldBe` (N 5)
         it "[test2\'] \"App\" function in linear enviroment" $
@@ -26,28 +28,41 @@ tAppAbs = hspec $ do
             run test4 `shouldBe` (Pr (N 5) (N 55))
         it "[test5] \"AppIn\" lambda function" $
             run test5 `shouldBe` (N 9)
+--
+tType :: IO ()
+tType = hspec $ do
+    describe "[TYPE]" $ do
+        it "[Type/LetIn]" $
+            trun (LetIn (Var "x") (Lit $ N 1) (Var "x")) `shouldBe` TNat
+        it "[Type/test1]" $
+            trun test1 `shouldBe` TProd TNat TNat
+        it "[Type/test2]" $
+            trun test2 `shouldBe` TNat
+        it "[Type/test2']" $
+            trun test2' `shouldBe` TNat
+        it "[Type/test3]" $
+            trun test3 `shouldBe` TNat
+        it "[Type/test4]" $
+            trun test4 `shouldBe` TProd TNat TNat
+        it "[Type/test5]" $
+            trun test5 `shouldBe` TNat
+--
 tFree :: IO ()
 tFree = hspec $ do
-    describe "[Free/Split]" $ do
-        it "..." $
+    describe "[FREE]" $ do
+        it "[Free/Split]" $
             splitEnv ["a","b"] env0 `shouldBe` ([("c",3)],[("a",1), ("b",2)])
-
-
 env0 = zipWith (\a b -> ([a],b)) "abc" [1..3]
 env1 = zipWith (\a b -> ('!':[a],b)) "abc" [1..3]
 --
-testEnvUniqueness :: IO ()
-testEnvUniqueness = hspec $ do
-    describe "testEnvUniqueness" $ do
-        it "let x = 10 in x" $
-            run (LetIn (Var "x") (Lit (N 10)) (Var "x")) `shouldBe` (N 10)
-        it "test1" $
-            run test1 `shouldBe` (Pr (N 2) (N 5))
 
 --
 run :: Term -> Val
 run e = runReader (eval1 e id) ([], [])
 --
+trun :: Term -> Typ
+trun e = runReader (typeof0 e) mempty
+
 -- test = succExpr $ plusExpr
 --      $ LetIn (Var "x") (Lit $ N 3)
 --      $ appRTo ("succ", "x") "y"

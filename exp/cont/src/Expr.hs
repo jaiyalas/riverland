@@ -39,8 +39,8 @@ data Term
     --
     | LetIn MTerm Term Term
     | RecIn MTerm Term Term
-    | BanIn MTerm Term Term
     | DupIn MTerm Term Term
+    | BanIn MTerm Term Term
     | AppIn MTerm (Term, Term) Term --
     --
     | Match VTerm [Case]
