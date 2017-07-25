@@ -85,7 +85,7 @@ rmByKey   :: Eq k => k -> Env k v -> Env k v
 popByKey  :: Eq k => k -> Env k v -> (Maybe v, Env k v)
 --
 peekByKey k = fmap snd . find ((k==).fst)
-rmByKey   k = filter ((k==).fst)
+rmByKey   k = filter ((k/=).fst)
 popByKey  k = bimap (peekByKey k) (rmByKey k) . dup
 --
 dup :: a -> (a, a)

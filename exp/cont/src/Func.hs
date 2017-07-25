@@ -80,6 +80,22 @@ test4 = plusExpr
     $ AppIn (Var "out") (BVar "plus", Pair (Var "a") (BVar "!b"))
     $ (Var "out")
 --
+test4' :: Term
+test4' = plusExpr
+    $ LetIn (Var "a") (Lit $ N 5)
+    $ DupIn (Pair (Var "a1") (Var "a2")) (Var "a")
+    $ BanIn (BVar "!a1") (Var "a1")
+    $ AppIn (Var "out") (BVar "plus", Pair (BVar "!a1") (Var "a2"))
+    $ (Var "out")
+-- ERROR
+test4'' :: Term
+test4'' = plusExpr
+    $ LetIn (Var "a") (Lit $ N 5)
+    $ DupIn (Pair (Var "a1") (Var "a2")) (Var "a")
+    $ BanIn (BVar "!a1") (Var "a1")
+    $ AppIn (Var "out") (BVar "plus", Pair (BVar "!a1") (Var "a1"))
+    $ (Var "out")
+--
 test5 :: Term
 test5 = id
     $ LetIn (Var "b") (Lit $ N 15)

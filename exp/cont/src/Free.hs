@@ -44,7 +44,7 @@ splitEnv' :: (Eq k, Show k, Show v)
           -> (Env k v, Env k v)
 splitEnv' [] xs ys = (xs, ys)
 splitEnv' (k:ks) xs ys = maybe
-    (error "[failure] split env")
+    (error $ "[splitEnv'] " ++ (show k) ++ " cannot be found within " ++ (show xs))
     (\v -> bimap id ((k, v):) (splitEnv' ks (filter ((/=k).fst) xs) ys))
     (lookup k xs)
 --

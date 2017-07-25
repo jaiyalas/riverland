@@ -19,14 +19,24 @@ typeof0 (Succ t) = (\TNat -> TNat) <$> (typeof0 t)
      ---------------  intuitionistic-ID
      [x : A] ⊢ x : A
 -}
-typeof0 (BVar name) = asks (fromJust . peekByKey name . fst)
+-- typeof0 (BVar name) = asks (fromJust . peekByKey name . fst)
+typeof0 (BVar name) = do
+    (ns, ls) <- ask
+    if ls == []
+        then return $ fromJust $ peekByKey name ns
+        else error $ "something leftover (BVar)" ++ (show ls)
 --
 {-
      ---------------  linear-Id
      <x : A> ⊢ x : A
 -}
-typeof0 (Var  name) = asks (fromJust . peekByKey name . snd)
-    -- where is empty-checking ? XD
+-- typeof0 (Var  name) = asks (fromJust . peekByKey name . snd)
+typeof0 (Var  name) = do
+    (_, ls) <- ask
+    let (maybev, lsLeft) = popByKey name ls
+    if lsLeft == []
+        then return $ fromJust maybev
+        else error $ "something leftover (Var) " ++ (show lsLeft)
 --
 {-
      Γ ⊢ t1 : A    Δ ⊢ t2 : B
@@ -53,9 +63,11 @@ typeof0 (Abs name inTyp fbody outTyp) =
     -----------------------------  ⊸-E
      Γ,Δ ⊢ f t : B
 -}
-typeof0 (App (funT, argT)) = do
-    (TFun inTy outTy) <- typeof0 funT
-    argTy <- typeof0 argT
+typeof0 (App (func, arg)) = do
+    (ns, ls) <- ask
+    let (lsArg, lsFun) = splitEnvWithTerm arg ls
+    argTy <- local (const (ns, lsArg)) (typeof0 arg)
+    (TFun inTy outTy) <- local (const (ns, lsFun)) (typeof0 func)
     if inTy == argTy
         then return outTy
         else error "mismatch(app)"
@@ -84,7 +96,7 @@ typeof0 (LetIn (Pair (Var name1) (Var name2)) t next) = do
 --
 {-
      Γ ⊢ t : A    Δ,<x : A> ⊢ e : B
-    -------------------------------- ???
+    --------------------------------
      Γ,Δ ⊢ let x = t in e : B
 -}
 typeof0 (LetIn (Var name) t next) = do
@@ -121,7 +133,7 @@ typeof0 (RecIn (BVar name) t next) = do
 --
 {-
     Γ ⊢ t : A    Δ,<x : A, y : A> ⊢ e : B
-    --------------------------------
+    -------------------------------------
     Γ,Δ ⊢ let (x, y) = (t, t) in e : B
 -}
 typeof0 (DupIn (Pair (Var name1) (Var name2)) t next) = do
@@ -132,9 +144,9 @@ typeof0 (DupIn (Pair (Var name1) (Var name2)) t next) = do
     local (const newEnv) (typeof0 next)
 --
 {-
-
-    ------------------------------------------
-    ⊢ let (x, y) = (t, t) in e : B
+    Γ ⊢ t : A    Δ,<p1 : A> ⊢ t1 : B    ...    Δ,<pn : A> ⊢ tn : B
+    ---------------------------------------------------------------
+    Γ,Δ ⊢ match t of {p1 → t1; ...; pn → tn} : B
 -}
 typeof0 (Match t cases) = do
     (ns, ls) <- ask
