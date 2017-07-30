@@ -79,16 +79,16 @@ freeVar (RecIn vn e next) = freeVar (LetIn vn e next)
 freeVar (BanIn vn e next) = freeVar (LetIn vn e next)
 freeVar (DupIn vn e next) = freeVar (LetIn vn e next)
 --
-freeVar (AppIn vn (funE, argE) next) =
-    let (ns1, ls1) = freeVar next
-        (ns2, ls2) = freeVar argE
-        (ns3, ls3) = freeVar funE
-        (xs, ys) = (freeVar vn)
-        foo1 = filter ((flip notElem) xs)
-        foo2 = filter ((flip notElem) ys)
-    in bimap foo1 foo2
-        ( ns1 `mappend` ns2 `mappend` ns3
-        , ls1 `mappend` ls2 `mappend` ls3)
+-- freeVar (AppIn vn (funE, argE) next) =
+--     let (ns1, ls1) = freeVar next
+--         (ns2, ls2) = freeVar argE
+--         (ns3, ls3) = freeVar funE
+--         (xs, ys) = (freeVar vn)
+--         foo1 = filter ((flip notElem) xs)
+--         foo2 = filter ((flip notElem) ys)
+--     in bimap foo1 foo2
+--         ( ns1 `mappend` ns2 `mappend` ns3
+--         , ls1 `mappend` ls2 `mappend` ls3)
 freeVar (Match vn cases) =
     let (ns2, ls2) = freeVar vn
         (ns, ls)   = bimap concat concat $ unzip (map fvCase cases)

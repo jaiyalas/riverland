@@ -41,13 +41,17 @@ data Term
     | RecIn MTerm Term Term
     | DupIn MTerm Term Term
     | BanIn MTerm Term Term
-    | AppIn MTerm (Term, Term) Term --
+    -- | AppIn MTerm (Term, Term) Term --
     --
     | Match VTerm [Case]
     | MatEq VTerm Case Case
     --
     deriving (Show, Eq)
     --
+appin :: MTerm -> (Term, Term) -> Term -> Term
+appin var (fun, arg) next =
+    LetIn var (App (fun, arg)) next
+
 --
 type Compt a = Reader (DualEnv a) a
 --

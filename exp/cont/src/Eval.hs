@@ -69,8 +69,8 @@ eval1 (DupIn (Pair (Var name1) (Var name2)) t next) k =
         eval1 (LetIn (Var name1) (Lit v) $ LetIn (Var name2) (Lit v) next) k
     )
 --
-eval1 (AppIn var (funT, argT) next) k =
-    eval1 (LetIn var (App (funT, argT)) next) k
+-- eval1 (AppIn var (funT, argT) next) k =
+--     eval1 (LetIn var (App (funT, argT)) next) k
 -- eval1 (AppIn (Var name) (Abs pname tyIn func tyOut, argT) next) k =
 --     eval1 argT (>>= \argv ->
 --         local (consL (pname, argv)) (eval1 func (>>= \resv ->

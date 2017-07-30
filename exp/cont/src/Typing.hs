@@ -60,7 +60,7 @@ typeof0 (Abs name inTyp fbody outTyp) =
 --
 {-
      Γ ⊢ f : A ⊸ B    Δ ⊢ t : A
-    -----------------------------  ⊸-E
+    ------------------------- ----  ⊸-E
      Γ,Δ ⊢ f t : B
 -}
 typeof0 (App (func, arg)) = do
@@ -72,15 +72,15 @@ typeof0 (App (func, arg)) = do
         then return outTy
         else error "mismatch(app)"
 --
-typeof0 (AppIn (Var name) (func, arg) next) = do
-    (ns, ls) <- ask
-    let (lsArg, lsLeft) = splitEnvWithTerm arg ls
-    let (lsFun, lsNext) = splitEnvWithTerm func lsLeft
-    (TFun inTy outTy) <- local (const (ns, lsFun)) (typeof0 func)
-    argT <- local (const (ns, lsArg)) (typeof0 arg)
-    if argT == inTy
-        then local (const (ns, (name, outTy) : lsNext)) (typeof0 next)
-        else error "mismatch(appin)"
+-- typeof0 (AppIn (Var name) (func, arg) next) = do
+--     (ns, ls) <- ask
+--     let (lsArg, lsLeft) = splitEnvWithTerm arg ls
+--     let (lsFun, lsNext) = splitEnvWithTerm func lsLeft
+--     (TFun inTy outTy) <- local (const (ns, lsFun)) (typeof0 func)
+--     argT <- local (const (ns, lsArg)) (typeof0 arg)
+--     if argT == inTy
+--         then local (const (ns, (name, outTy) : lsNext)) (typeof0 next)
+--         else error "mismatch(appin)"
 --
 {-
      Γ ⊢ t : A ⊗ B    Δ,<x : A>,<y : B> ⊢ e : C
@@ -158,9 +158,9 @@ typeof0 (Match t cases) = do
         else error "mismatch"
 --
 {-
-
-    --------------------
-
+    Γ ⊢ t : A    Δ,<pEq : A> ⊢ tEq : B    Δ,<pEq : A> ⊢ tEq : B
+    ------------------------------------------------------------
+    Γ,Δ ⊢ match t of {pEq → tEq; pNEq → tNEq} : B
 -}
 typeof0 (MatEq t caseEq caseNEq) = do
     (ns, ls) <- ask

@@ -8,7 +8,7 @@ import Expr
 -- ###########
 
 appRTo :: (Name, Name) -> Name -> Term -> Term
-appRTo (f, x) y e = AppIn (Var y) (BVar f, Var x) e
+appRTo (f, x) y e = appin (Var y) (BVar f, Var x) e
 pairVar :: Name -> Name -> Term
 pairVar v1 v2 = Pair (Var v1) (Var v2)
 dupin :: Term -> Term
@@ -53,9 +53,9 @@ test1 :: Term
 test1 = succExpr $ plusExpr
      $ LetIn (Var "x") (Lit $ N 1)
      $ LetIn (Var "y") (Lit $ N 2)
-     $ AppIn (Var "z1") (BVar "succ", Var "x")
-     $ AppIn (Var "z2") (BVar "succ", Var "y")
-     $ AppIn (Var "r") (BVar "plus", Pair (Var "z1") (Var "z2"))
+     $ appin (Var "z1") (BVar "succ", Var "x")
+     $ appin (Var "z2") (BVar "succ", Var "y")
+     $ appin (Var "r") (BVar "plus", Pair (Var "z1") (Var "z2"))
      $ (Var "r")
 --
 test2 :: Term
@@ -77,7 +77,7 @@ test4 = plusExpr
     $ LetIn (Var "a") (Lit $ N 5)
     $ LetIn (Var "b") (Lit $ N 50)
     $ BanIn (BVar "!b") (Var "b")
-    $ AppIn (Var "out") (BVar "plus", Pair (Var "a") (BVar "!b"))
+    $ appin (Var "out") (BVar "plus", Pair (Var "a") (BVar "!b"))
     $ (Var "out")
 --
 test4' :: Term
@@ -85,7 +85,7 @@ test4' = plusExpr
     $ LetIn (Var "a") (Lit $ N 5)
     $ DupIn (Pair (Var "a1") (Var "a2")) (Var "a")
     $ BanIn (BVar "!a1") (Var "a1")
-    $ AppIn (Var "out") (BVar "plus", Pair (BVar "!a1") (Var "a2"))
+    $ appin (Var "out") (BVar "plus", Pair (BVar "!a1") (Var "a2"))
     $ (Var "out")
 -- ERROR
 test4'' :: Term
@@ -93,13 +93,13 @@ test4'' = plusExpr
     $ LetIn (Var "a") (Lit $ N 5)
     $ DupIn (Pair (Var "a1") (Var "a2")) (Var "a")
     $ BanIn (BVar "!a1") (Var "a1")
-    $ AppIn (Var "out") (BVar "plus", Pair (BVar "!a1") (Var "a1"))
+    $ appin (Var "out") (BVar "plus", Pair (BVar "!a1") (Var "a1"))
     $ (Var "out")
 --
 test5 :: Term
 test5 = id
     $ LetIn (Var "b") (Lit $ N 15)
-    $ AppIn (Var "out")
+    $ appin (Var "out")
         ( Abs "#0" TNat (BanIn (BVar "x") (Var "#0") (Lit $ N 9)) TNat
         , Var "b")
     $ (Var "out")
