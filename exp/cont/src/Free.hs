@@ -3,7 +3,7 @@ module Free where
 import Expr
 import Control.Monad
 import Data.Bifunctor
-import Data.Maybe (maybe)
+import Data.Maybe (maybe, catMaybes)
 --
 import Debug.Trace
 --
@@ -67,7 +67,7 @@ freeVar (App (funE, argE)) =
 --
 freeVar (Abs vn tyIn fbody tyOut) =
     bimap (filter (/= vn)) (filter (/= vn)) $ freeVar fbody
---
+-- let x = (1 + a) in (x + 1)
 freeVar (LetIn vn e next) =
     let (ns1, ls1) = freeVar next
         (ns2, ls2) = freeVar e
@@ -120,3 +120,90 @@ fvCase (e :~> next) =
 --         (ls1, ls2) = splitEnv ks ls
 --     in ( (ns1, ls1)
 --        , (ns2, ls2) )
+
+--
+--
+-- casesMatch :: Eq a => a -> [Case] -> Maybe [DualEnv a]
+-- casesMatch v
+--     = (\x -> if null x then Nothing else Just x)
+--     . catMaybes . fmap (matching v . casePattern)
+-- --
+-- dss :: Term -> [Pattern]
+-- dss (Lit v) = return (Lit v)
+-- dss (Var vt) = return (Var vt)
+-- dss (BVar vt) = return (BVar vt)
+-- --
+-- dss (Succ t) = fmap Succ (dss t)
+-- dss (Pair e1 e2) = zipWith Pair (dss e1) (dss e2)
+-- --
+-- dss (Abs _ _ _ _) = error "un-dssable"
+-- dss (App _)  = error "un-dssable"
+-- --
+-- dss (LetIn _ _ next) = dss next
+-- dss (RecIn _ _ next) = dss next
+-- dss (DupIn _ _ next) = dss next
+-- dss (BanIn _ _ next) = dss next
+-- -- -- hmmmmmmm..
+-- dss (Match _ cs) =
+--     concat $ fmap (dss . caseBody) cs
+-- dss (MatEq t ceq cneq) =
+--     dss (Match t [ceq, cneq])
+-- --
+-- data CaseExt = CaseExt Pattern [Term -> Term] Pattern
+-- caseExt :: Case -> CaseExt
+-- caseExt (p :~> t) = CaseExt p path p'
+--     where (path, p') = epath t
+-- -- errrr... zipper?
+-- epath :: Term -> ([Term -> Term], Pattern)
+-- epath t@(Lit _)  = ([], t)
+-- epath t@(Var _)  = ([], t)
+-- epath t@(BVar _) = ([], t)
+-- --
+-- epath t@(Succ _) = fmap Succ (dss t)
+-- epath t@(Pair _ _) = zipWith Pair (dss e1) (dss e2)
+-- --
+-- epath (Abs _ _ _ _) = error "un-dssable"
+-- epath (App _)  = error "un-dssable"
+-- --
+-- epath (LetIn var t next) =
+--     let (xs, node) = epath next in ((LetIn var t) : xs, node)
+-- epath (RecIn var t next) =
+--     let (xs, node) = epath next in ((RecIn var t) : xs, node)
+-- epath (DupIn var t next) =
+--     let (xs, node) = epath next in ((DupIn var t) : xs, node)
+-- epath (BanIn var t next) =
+--     let (xs, node) = epath next in ((BanIn var t) : xs, node)
+-- --
+-- epath (Match var cs) =
+--
+--
+-- --
+-- matchCase :: Eq a => a -> Case -> Maybe (DualEnv a, Term)
+-- matchCase v (p :~> e) =
+--     match v p >>= \x -> return $ Just (x, e)
+-- --
+-- match :: Eq a => a -> Pattern -> Maybe (DualEnv a)
+-- match val (Lit v)
+--     | val == v  = return mempty
+--     | otherwise = Nothing
+-- match val (Var vt)  =
+--     return $ (val, Var vt) `consL` mempty
+-- match val (BVar vt) =
+--     return $ (val, Var vt) `consN` mempty
+-- --
+-- match (N 0) (Succ vt) = error "not a pattern"
+-- match (N n) (Succ vt) = match (N (n - 1)) vt
+-- --
+-- match (Pr v1 v2) (Pair va vb) =
+--     match v1 va ++ match v2 vb
+-- --
+-- match _ _ = error "not a pattern"
+--
+-- --
+--
+--
+-- data Rose a = RoseNode a [Rose a]
+-- roseLift
+
+
+--

@@ -8,9 +8,13 @@ import Control.Monad.Reader
 import Expr
 --
 
---
-eval1 :: Term -> Cont -> Compt Val
+-- get 君?
+eval1 :: Term -> Cont -> Compt Val -- Reader (DualEnv Val)
 eval1 (Lit v) k = k $ return v
+-- env vname ---> (v, ~env~)
+-- env <--- vname (v, ~env~)
+--
+-- asks :: MonadReader r m => (r -> a) -> m a
 eval1 (Var name) k =
     k $ asks (fromJust . peekByKey name . {-traceShowId .-} snd)
 eval1 (BVar name) k =
@@ -25,9 +29,11 @@ eval1 (Pair t1 t2) k =
             k $ return $ Pr v1 v2
         )
     )
+-- env abs ---> (v==(abs,env), ~env~==env)
+-- env <--- abs (v==(abs,env), ~env~==env)
+--
 eval1 (Abs name tyIn func tyOut) k =
     k $ asks (Clos name tyIn func tyOut)
-
 -- ##
 eval1 (App (funT, argT)) k = do
     (Clos pname tyIn fbody tyOut localEnv) <- eval1 funT id
@@ -54,6 +60,10 @@ eval1 (LetIn (Pair t1 t2) t next) k =
     eval1 t (>>= \(Pr v1 v2) ->
         eval1 (LetIn t1 (Lit v1) $ LetIn t2 (Lit v2) next) k
     )
+eval1 (DupIn (Pair (Var name1) (Var name2)) t next) k =
+    eval1 t (>>= \v ->
+        eval1 (LetIn (Var name1) (Lit v) $ LetIn (Var name2) (Lit v) next) k
+    )
 --
 eval1 (RecIn (BVar name) t next) k =
     eval1 t (>>= \(Clos pname tyIn fbody tyOut localEnv) ->
@@ -64,10 +74,7 @@ eval1 (BanIn (BVar name) t next) k =
     eval1 t (>>= \v ->
         local (consN (name, v)) (eval1 next k)
     )
-eval1 (DupIn (Pair (Var name1) (Var name2)) t next) k =
-    eval1 t (>>= \v ->
-        eval1 (LetIn (Var name1) (Lit v) $ LetIn (Var name2) (Lit v) next) k
-    )
+
 --
 -- eval1 (AppIn var (funT, argT) next) k =
 --     eval1 (LetIn var (App (funT, argT)) next) k
@@ -114,12 +121,11 @@ eval1 (MatEq vt caseEq caseNEq) k =
 
 
 
-
-
-
-
-
-
+--
+findMatched :: Val -> [Case] -> Maybe (DualEnv Val, Term)
+findMatched v (mat :~> next : cs) =
+    maybe (findMatched v cs) (\ctx -> return (ctx, next)) $ matching v mat
+findMatched v [] = Nothing
 --
 matching :: Val -> Term -> Maybe (DualEnv Val)
 matching v (Var vname) =
@@ -139,9 +145,4 @@ matching (Pr v1 v2) (Pair e1 e2) = do
     env2 <- matching v2 e2
     return $ env1 `mappend` env2
 matching v e = Nothing
---
-findMatched :: Val -> [Case] -> Maybe (DualEnv Val, Term)
-findMatched v (mat :~> next : cs) =
-    maybe (findMatched v cs) (\ctx -> return (ctx, next)) $ matching v mat
-findMatched v [] = Nothing
 --

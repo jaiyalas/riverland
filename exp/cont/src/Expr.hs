@@ -24,8 +24,14 @@ data Typ
 --
 data Case = (:~>) MTerm Term deriving (Show, Eq)
 --
+caseBody :: Case -> Term
+caseBody (_ :~> t) = t
+casePattern :: Case -> Pattern
+casePattern (p :~> _) = p
+--
 type MTerm = Term
 type VTerm = Term
+type Pattern = Term
 --
 data Term
     = Lit Val
@@ -34,6 +40,7 @@ data Term
     --
     | Succ Term
     | Pair Term Term
+    --
     | Abs Name Typ Term Typ
     | App (Term, Term)
     --
@@ -48,10 +55,10 @@ data Term
     --
     deriving (Show, Eq)
     --
+--
 appin :: MTerm -> (Term, Term) -> Term -> Term
 appin var (fun, arg) next =
     LetIn var (App (fun, arg)) next
-
 --
 type Compt a = Reader (DualEnv a) a
 --
@@ -95,3 +102,13 @@ popByKey  k = bimap (peekByKey k) (rmByKey k) . dup
 dup :: a -> (a, a)
 dup x = (x, x)
 --
+
+
+-- beeeeeeee-gos
+
+-- (s1, (s2, s3)) === (v1, (v2, v3))
+
+-- data BTerm
+--     = BPair BTerm BTerm
+--     | BVar Name
+--     | Bee BFun BTerm BTerm

@@ -7,8 +7,9 @@ import Free
 --
 main :: IO ()
 main = do
-    tAppAbs    
+    tAppAbs
     tType
+    tRval
     -- tFree
 --
 tAppAbs :: IO ()
@@ -47,13 +48,18 @@ tType = hspec $ do
         it "[Type/test5]" $
             trun test5 `shouldBe` TNat
 --
-tFree :: IO ()
-tFree = hspec $ do
-    describe "[FREE]" $ do
-        it "[Free/Split]" $
-            splitEnv ["a","b"] env0 `shouldBe` ([("c",3)],[("a",1), ("b",2)])
-env0 = zipWith (\a b -> ([a],b)) "abc" [1..3]
-env1 = zipWith (\a b -> ('!':[a],b)) "abc" [1..3]
+tRval :: IO ()
+tRval = hspec $ do
+    describe "[RVAL]" $ do
+        it "[RVAL/Simple]" $
+            rrun (Var "x") (N 5) `shouldBe` ([], [("x",N 5)])
+        it "[RVAL/Simple2]" $
+            run testIdNat `shouldBe` (N 5)
+        it "[RVAL/Simple3]" $
+            -- appin (Var "out") (idNat, Lit $ N 5) (Var "out")
+            rrun testIdNat (N 5) `shouldBe` mempty
+--
+
 --
 
 --
@@ -62,6 +68,8 @@ run e = runReader (eval1 e id) ([], [])
 --
 trun :: Term -> Typ
 trun e = runReader (typeof0 e) mempty
+rrun :: Term -> Val -> (DualEnv Val)
+rrun e v = runReader (rval0 v e) mempty
 
 -- test = succExpr $ plusExpr
 --      $ LetIn (Var "x") (Lit $ N 3)
@@ -70,5 +78,13 @@ trun e = runReader (typeof0 e) mempty
 --      $ AppIn (Var "res") (BVar "plus", (Pair (Var "z1") (Var "z2")))
 --      $ (Var "res")
 --
+--
+tFree :: IO ()
+tFree = hspec $ do
+    describe "[FREE]" $ do
+        it "[Free/Split]" $
+            splitEnv ["a","b"] env0 `shouldBe` ([("c",3)],[("a",1), ("b",2)])
+env0 = zipWith (\a b -> ([a],b)) "abc" [1..3]
+env1 = zipWith (\a b -> ('!':[a],b)) "abc" [1..3]
 
 --

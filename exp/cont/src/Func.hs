@@ -104,6 +104,15 @@ test5 = id
         , Var "b")
     $ (Var "out")
 --
+idNat :: Term
+idNat = id
+    $ Abs "#0" TNat (Var "#0") TNat
+--
+testIdNat :: Term
+testIdNat = id
+    $ appin (Var "out") (idNat, Lit $ N 5)
+    $ (Var "out")
+--
 localBanId :: Term
 localBanId = Abs "#0" TNat (BanIn (BVar "x") (Var "#0") (BVar "x")) TNat
 --
